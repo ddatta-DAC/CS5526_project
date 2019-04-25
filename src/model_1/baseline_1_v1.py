@@ -12,6 +12,7 @@ import pickle
 from sklearn.metrics import mutual_info_score
 import itertools
 import time
+from joblib import parallel_backend
 
 try:
     import ad_tree_v1
@@ -27,11 +28,10 @@ import operator
 # ------------------------- #
 _author__ = "Debanjan Datta"
 __email__ = "ddatta@vt.edu"
-__version__ = "1.0"
+__version__ = "7.0"
 # ------------------------- #
 
 CONFIG_FILE = 'config_1.yaml'
-
 with open(CONFIG_FILE) as f:
     config = yaml.safe_load(f)
 
@@ -123,17 +123,30 @@ def get_domain_arity():
 # --------------- #
 def get_MI_attrSetPair(data_x, s1, s2, obj_adtree):
 
+    if  len(s1) > 1 or len(s2) > 1 : return 1
+
+    if len(s1) == 1 or len(s2) == 1 :
+        _x = np.reshape( data_x[:,s1],-1)
+        _y = np.reshape( data_x[:,s2],-1)
+        return calc_MI(x = _x, y= _y)
+
     def _join(row, indices):
         r = '_'.join([str(row[i]) for i in indices])
         return r
+
+    mask = np.random.choice([False, True], len(data_x), p=[0.8, 0.2])
+    data_x = data_x[mask]
 
     _idx = list(s1)
     _idx.extend(s2)
     _atr = list(s1)
     _atr.extend(s2)
-    print(_atr)
+    _dict = {}
+    for a in _atr:
+        _dict[a] = set(data_x[:,[a]])
 
-    _tmp_df = pd.DataFrame(data=DATA_X).sample(frac=0.25)
+
+    _tmp_df = pd.DataFrame(data=DATA_X)
     _tmp_df = _tmp_df[_atr]
 
     _tmp_df['x'] = None
@@ -161,7 +174,7 @@ def get_MI_attrSetPair(data_x, s1, s2, obj_adtree):
 def get_attribute_sets(
         attribute_list,
         obj_adtree,
-        k=2
+        k=1
 ):
     global SAVE_DIR
     use_mi = True
@@ -224,7 +237,9 @@ def get_count(obj_adtree, domains, vals):
     return res
 
 
-def get_r_value(record, obj_adtree, set_pairs, N):
+def get_r_value(_id, record, obj_adtree, set_pairs, N):
+    global ALPHA
+    print(_id)
     _r_dict = {}
     for k, v in set_pairs.items():
         _vals = []
@@ -272,10 +287,14 @@ def get_r_value(record, obj_adtree, set_pairs, N):
             U = U.union(set(_attr))
             score *= _r
     print(score)
-    return score
+    return _id, score
 
 
 def main():
+    global config
+
+    K = int(config['K'])
+
     N = DATA_X.shape[0]
     obj_ADTree = ad_tree_v1.ADT()
     obj_ADTree.setup(DATA_X)
@@ -294,9 +313,24 @@ def main():
 
     id_list = ID_LIST['all']
     result_dict = {}
-    for _id, record in zip(id_list, DATA_X):
-        r = get_r_value(record, obj_ADTree, attribute_set_pairs, N)
-        result_dict[id] = r
+    # for _id, record in zip(id_list, DATA_X):
+    #     r = get_r_value(_id, record, obj_ADTree, attribute_set_pairs, N)
+    #     result_dict[id] = r
+
+    from joblib import Parallel, delayed
+
+    results =  Parallel(
+        n_jobs=10,
+        prefer="threads"
+    )(
+        delayed(
+            get_r_value
+        )(_id, record, obj_ADTree, attribute_set_pairs, N)
+        for _id, record in zip(id_list, DATA_X)
+    )
+
+    for e in results:
+        result_dict[e[0]] = e[1]
 
     # save file
     SAVE_FILE_OP = '_'.join(['result_alg_1_', _DIR, str(time.time().split('.'[0]))]) + '.pkl'
