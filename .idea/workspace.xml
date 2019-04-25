@@ -2,97 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e845ca5c-b997-484d-82fd-22e3dff07afc" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/.ipynb_checkpoints/connect-4-checkpoint.data" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/10_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/11_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/12_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/13_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/14_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/15_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/16_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/17_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/18_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/19_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/1_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/20_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/21_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/22_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/23_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/24_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/25_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/26_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/27_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/28_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/2_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/30_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/31_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/32_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/33_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/34_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/36_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/37_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/38_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/39_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/3_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/40_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/4_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/5_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/7_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/8_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/9_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/connect-4.data" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/data_1_idList.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/data_1_x.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_1/domain_dims.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/11_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/12_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/13_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/16_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/17_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/1_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/23_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/24_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/25_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/26_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/29_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/2_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/30_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/32_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/33_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/34_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/35_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/36_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/37_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/3_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/40_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/42_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/43_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/44_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/45_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/46_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/48_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/4_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/51_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/52_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/53_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/5_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/6_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/7_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/8_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/9_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/covtype.data" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/covtype.data.gz" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/data_2_idList.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/data_2_x.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/domain_dims.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/id_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Data/data_2/tag_id2val.pkl" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Preprocess/.ipynb_checkpoints/data_1_preprocessor_v1-checkpoint.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Preprocess/.ipynb_checkpoints/data_2_preprocessor_v1-checkpoint.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Preprocess/data_1_preprocessor_v1.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/Preprocess/data_2_preprocessor_v1.ipynb" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model_1/baseline_1_v1.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/model_1/baseline_1_v1.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model_1/save_dir/data_1/set_pairs_2.pkl" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -116,11 +28,10 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model_1/baseline_1_v1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="385">
-              <caret line="121" column="14" lean-forward="true" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="14" />
+            <state relative-caret-position="308">
+              <caret line="202" column="20" selection-start-line="202" selection-start-column="20" selection-end-line="202" selection-end-column="20" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-                <element signature="e#4511#4607#0" />
                 <element signature="e#4666#5893#0" />
               </folding>
             </state>
@@ -137,6 +48,11 @@
         </entry>
       </file>
     </leaf>
+  </component>
+  <component name="FindInProjectRecents">
+    <findStrings>
+      <find>return</find>
+    </findStrings>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -186,12 +102,6 @@
             <path>
               <item name="CS5526_project" type="b2602c69:ProjectViewProjectNode" />
               <item name="CS5526_project" type="462c0819:PsiDirectoryNode" />
-              <item name="Data" type="462c0819:PsiDirectoryNode" />
-              <item name="data_1" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="CS5526_project" type="b2602c69:ProjectViewProjectNode" />
-              <item name="CS5526_project" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -200,6 +110,20 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="model_1" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="CS5526_project" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CS5526_project" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="model_1" type="462c0819:PsiDirectoryNode" />
+              <item name="output" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="CS5526_project" type="b2602c69:ProjectViewProjectNode" />
+              <item name="CS5526_project" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="model_1" type="462c0819:PsiDirectoryNode" />
+              <item name="save_dir" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -207,6 +131,7 @@
     </panes>
   </component>
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
@@ -268,11 +193,11 @@
     <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14941302" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14941302" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Version Control" order="0" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="1" visible="true" weight="0.3297975" />
-      <window_info anchor="bottom" id="Terminal" order="2" weight="0.3297975" />
+      <window_info anchor="bottom" id="Python Console" order="1" weight="0.3297975" />
+      <window_info anchor="bottom" id="Terminal" order="2" visible="true" weight="0.3297975" />
       <window_info anchor="bottom" id="Event Log" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="4" />
       <window_info anchor="bottom" id="Find" order="5" />
@@ -305,11 +230,10 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/model_1/baseline_1_v1.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="385">
-          <caret line="121" column="14" lean-forward="true" selection-start-line="121" selection-start-column="14" selection-end-line="121" selection-end-column="14" />
+        <state relative-caret-position="308">
+          <caret line="202" column="20" selection-start-line="202" selection-start-column="20" selection-end-line="202" selection-end-column="20" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#4511#4607#0" />
             <element signature="e#4666#5893#0" />
           </folding>
         </state>
