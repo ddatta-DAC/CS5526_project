@@ -111,7 +111,6 @@ def calc_MI(x, y):
 MI_THRESHOLD = 0.1
 ALPHA = 0.1
 
-
 # Get arity of each domain
 def get_domain_arity():
     f = os.path.join(DATA_DIR, _DIR, 'domain_dims.pkl')
@@ -305,7 +304,7 @@ def main():
     attribute_set_pairs = get_attribute_sets(
         attribute_list,
         obj_ADTree,
-        k=2
+        k=K
     )
 
     print(attribute_set_pairs)

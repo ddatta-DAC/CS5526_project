@@ -2,12 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="e845ca5c-b997-484d-82fd-22e3dff07afc" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/model_2/APE_v1.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model_2/config_1.yaml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/model_2/evaluation_v1.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/model_1/baseline_1_v1.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/model_1/baseline_1_v1.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/model_1/config_1.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/src/model_1/config_1.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/model_2/APE_v1.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/model_2/APE_v1.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -31,8 +28,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/model_1/baseline_1_v1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="271">
-              <caret line="61" column="17" selection-start-line="61" selection-start-column="17" selection-end-line="61" selection-end-column="17" />
+            <state relative-caret-position="305">
+              <caret line="358" column="12" lean-forward="true" selection-start-line="358" selection-start-column="12" selection-end-line="358" selection-end-column="12" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
                 <element signature="e#1462#2493#0" />
@@ -45,20 +42,11 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/model_2/APE_v1.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="322">
-              <caret line="797" column="4" lean-forward="true" selection-start-line="797" selection-start-column="6" selection-end-line="802" selection-end-column="46" />
+            <state relative-caret-position="339">
+              <caret line="587" column="23" lean-forward="true" selection-start-line="587" selection-start-column="23" selection-end-line="587" selection-end-column="23" />
               <folding>
                 <element signature="e#104#119#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/Preprocess/data_1_preprocessor_v1.ipynb">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="212">
-              <caret line="852" column="13" selection-start-line="852" selection-start-column="9" selection-end-line="852" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -73,11 +61,6 @@
               </folding>
             </state>
           </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/model_2/config_1.yaml">
-          <provider selected="true" editor-type-id="text-editor" />
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
@@ -110,10 +93,13 @@
   <component name="FindInProjectRecents">
     <findStrings>
       <find>return</find>
-      <find>k</find>
       <find>k=</find>
-      <find>new</find>
       <find>'all</find>
+      <find>new</find>
+      <find>epo</find>
+      <find>k</find>
+      <find>frozen_filename</find>
+      <find>frozen</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -123,8 +109,8 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/src/model_1/config_1.yaml" />
-        <option value="$PROJECT_DIR$/src/model_1/baseline_1_v1.py" />
         <option value="$PROJECT_DIR$/src/model_2/evaluation_v1.py" />
+        <option value="$PROJECT_DIR$/src/model_1/baseline_1_v1.py" />
         <option value="$PROJECT_DIR$/src/model_2/APE_v1.py" />
       </list>
     </option>
@@ -167,12 +153,6 @@
               <item name="CS5526_project" type="b2602c69:ProjectViewProjectNode" />
               <item name="CS5526_project" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
-              <item name="model_1" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="CS5526_project" type="b2602c69:ProjectViewProjectNode" />
-              <item name="CS5526_project" type="462c0819:PsiDirectoryNode" />
-              <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="model_2" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
@@ -203,7 +183,7 @@
       </list>
     </option>
   </component>
-  <component name="RunManager" selected="Python.APE_v1">
+  <component name="RunManager" selected="Python.baseline_1_v1">
     <configuration name="APE_v1" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <module name="CS5526_project" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -248,8 +228,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.APE_v1" />
         <item itemvalue="Python.baseline_1_v1" />
+        <item itemvalue="Python.APE_v1" />
       </list>
     </recent_temporary>
   </component>
@@ -271,11 +251,11 @@
     <editor active="true" />
     <layout>
       <window_info id="Favorites" side_tool="true" />
-      <window_info content_ui="combo" id="Project" order="0" visible="true" weight="0.14941302" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.14941302" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
       <window_info anchor="bottom" id="Version Control" order="0" />
-      <window_info active="true" anchor="bottom" id="Python Console" order="1" visible="true" weight="0.3297975" />
-      <window_info anchor="bottom" id="Terminal" order="2" weight="0.3297975" />
+      <window_info anchor="bottom" id="Python Console" order="1" weight="0.3297975" />
+      <window_info anchor="bottom" id="Terminal" order="2" visible="true" weight="0.3297975" />
       <window_info anchor="bottom" id="Event Log" order="3" side_tool="true" />
       <window_info anchor="bottom" id="Message" order="4" />
       <window_info anchor="bottom" id="Find" order="5" />
@@ -286,17 +266,10 @@
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
       <window_info anchor="right" id="Ant Build" order="1" weight="0.25" />
       <window_info anchor="right" content_ui="combo" id="Hierarchy" order="2" weight="0.25" />
-      <window_info anchor="right" id="Run" order="3" visible="true" weight="0.33778015" />
+      <window_info anchor="right" id="Run" order="3" visible="true" weight="0.37833512" />
     </layout>
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/model_1/config_1.yaml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" selection-start-line="6" selection-end-line="6" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/../venv/lib/python3.6/site-packages/pandas/core/base.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="221">
@@ -304,23 +277,8 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/model_2/config_1.yaml">
-      <provider selected="true" editor-type-id="text-editor" />
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/model_2/model_ape_11556221912.2358806.png">
       <provider selected="true" editor-type-id="images" />
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/model_1/baseline_1_v1.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="271">
-          <caret line="61" column="17" selection-start-line="61" selection-start-column="17" selection-end-line="61" selection-end-column="17" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <element signature="e#1462#2493#0" />
-            <element signature="e#4511#4607#0" />
-          </folding>
-        </state>
-      </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/model_1/ad_tree_v1.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -331,12 +289,15 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Preprocess/data_1_preprocessor_v1.ipynb">
+    <entry file="file://$PROJECT_DIR$/src/model_1/config_1.yaml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="212">
-          <caret line="852" column="13" selection-start-line="852" selection-start-column="9" selection-end-line="852" selection-end-column="13" />
+        <state relative-caret-position="102">
+          <caret line="6" selection-start-line="6" selection-end-line="6" />
         </state>
       </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model_2/config_1.yaml">
+      <provider selected="true" editor-type-id="text-editor" />
     </entry>
     <entry file="file://$PROJECT_DIR$/src/model_2/evaluation_v1.py">
       <provider selected="true" editor-type-id="text-editor">
@@ -348,10 +309,29 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Preprocess/data_1_preprocessor_v1.ipynb">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="212">
+          <caret line="852" column="13" selection-start-line="852" selection-start-column="9" selection-end-line="852" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/model_1/baseline_1_v1.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="305">
+          <caret line="358" column="12" lean-forward="true" selection-start-line="358" selection-start-column="12" selection-end-line="358" selection-end-column="12" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <element signature="e#1462#2493#0" />
+            <element signature="e#4511#4607#0" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/model_2/APE_v1.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="322">
-          <caret line="797" column="4" lean-forward="true" selection-start-line="797" selection-start-column="6" selection-end-line="802" selection-end-column="46" />
+        <state relative-caret-position="339">
+          <caret line="587" column="23" lean-forward="true" selection-start-line="587" selection-start-column="23" selection-end-line="587" selection-end-column="23" />
           <folding>
             <element signature="e#104#119#0" expanded="true" />
           </folding>

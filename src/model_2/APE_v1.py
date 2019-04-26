@@ -75,7 +75,7 @@ def create_args():
 
     tf.app.flags.DEFINE_integer(
         'num_epochs',
-        2,
+        10,
         'number of epochs for training'
     )
 
@@ -208,12 +208,13 @@ class model_ape_1:
         self.batch_size = batch_size
         self.inp_dims = inp_dims
         self.chkpt_dir = chkpt_dir
+        self.frozen_filename = self.chkpt_dir + "/frozen.pb"
 
     # -------- Restore ---------- #
     def restore_model(self):
         tf.reset_default_graph()
-        filename = self.chkpt_dir + "/frozen.pb"
-        with tf.gfile.GFile(filename, "rb") as f:
+
+        with tf.gfile.GFile( self.frozen_filename, "rb") as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
         self.restore_graph = None
@@ -579,7 +580,7 @@ class model_ape_1:
             self.wb_names
         )
 
-        with tf.gfile.GFile("./checkpoints/" + "frozen.pb", "wb") as f:
+        with tf.gfile.GFile(self.frozen_filename, "wb") as f:
             f.write(frozen_graph_def.SerializeToString())
         return
 
