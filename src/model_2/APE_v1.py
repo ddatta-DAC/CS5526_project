@@ -212,7 +212,7 @@ class model_ape_1:
     # -------- Restore ---------- #
     def restore_model(self):
         tf.reset_default_graph()
-        filename = self.chkpt_dir + "frozen.pb"
+        filename = self.chkpt_dir + "/frozen.pb"
         with tf.gfile.GFile(filename, "rb") as f:
             graph_def = tf.GraphDef()
             graph_def.ParseFromString(f.read())
