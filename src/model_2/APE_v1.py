@@ -10,6 +10,7 @@ import numpy as np
 import glob
 import pandas as pd
 import os
+from pprint import pprint
 from sklearn.manifold import TSNE
 import sys
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
@@ -161,11 +162,15 @@ if not os.path.exists(SAVE_DIR):
     os.mkdir(SAVE_DIR)
 SAVE_DIR = os.path.join(SAVE_DIR, _DIR)
 
+
+print(OP_DIR)
+print(SAVE_DIR)
 if not os.path.exists(SAVE_DIR):
     os.mkdir(SAVE_DIR)
 
 if not os.path.exists(OP_DIR):
     os.mkdir(OP_DIR)
+
 OP_DIR = os.path.join(OP_DIR, _DIR)
 
 if not os.path.exists(OP_DIR):
@@ -175,6 +180,8 @@ MODEL_NAME = 'model_ape'
 embedding_dims = [10]
 domain_dims = get_domain_arity()
 cur_path = get_cur_path()
+
+print(cur_path)
 
 # ----------------------------------------- #
 
@@ -200,7 +207,7 @@ class model_ape_1:
             num_epochs=5,
             chkpt_dir = None
     ):
-
+        global MODEL_NAME
         self.neg_samples = neg_samples  # k in paper
         self.k = neg_samples
         self.num_entities = num_entities
@@ -208,7 +215,11 @@ class model_ape_1:
         self.batch_size = batch_size
         self.inp_dims = inp_dims
         self.chkpt_dir = chkpt_dir
-        self.frozen_filename = self.chkpt_dir + "/frozen.pb"
+        f_name = MODEL_NAME + "frozen.pb"
+        self.frozen_filename = os.path.join (self.chkpt_dir, f_name)
+        print(self.frozen_filename)
+        exit(1)
+
 
     # -------- Restore ---------- #
     def restore_model(self):
@@ -639,6 +650,13 @@ def get_training_data(
         inp_dims[d] = domain_dims[d]
     print('Input dimensions', inp_dims)
 
+    TRAIN_DATA_FILE = os.path.join(DATA_DIR,_DIR,'ape_v1_train_data.pkl')
+
+    if os.path.exists(TRAIN_DATA_FILE):
+        with open(TRAIN_DATA_FILE, 'rb') as fh:
+            data = pickle.load(fh)
+        return data, inp_dims , ID_LIST
+
     x_pos = []
     x_neg = []
     term_2 = []
@@ -667,7 +685,8 @@ def get_training_data(
                         break
                 record[nd] = rnd
                 _x_neg.append(record)
-                _term_4.append(np.log(P_A[d][rnd]))
+                print(P_A[nd])
+                _term_4.append(np.log(P_A[nd][rnd]))
 
             log_kPne = 0.0
             for _d2 in range(num_domains):
@@ -689,6 +708,11 @@ def get_training_data(
     print(term_4.shape)
 
     data = [x_pos, x_neg, term_2, term_4]
+    # save data
+
+    with open(TRAIN_DATA_FILE, 'wb') as fh:
+        pickle.dump(data, fh, pickle.HIGHEST_PROTOCOL)
+
     return data, inp_dims , ID_LIST
 
 

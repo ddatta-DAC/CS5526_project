@@ -291,7 +291,7 @@ def get_r_value(_id, record, obj_adtree, set_pairs, N):
 
 def main():
     global config
-
+    start = time.time()
     K = int(config['K'])
 
     N = DATA_X.shape[0]
@@ -331,8 +331,13 @@ def main():
     for e in results:
         result_dict[e[0]] = e[1]
 
+    end = time.time()
+    print('-----------------------')
+    print(_DIR)
+    print('k = ', K)
+    print(' Time taken :', end-start)
     # save file
-    SAVE_FILE_OP = '_'.join(['result_alg_1_', _DIR, str(time.time().split('.'[0]))]) + '.pkl'
+    SAVE_FILE_OP = '_'.join(['result_alg_1_', _DIR, str(time.time()).split('.'[0])]) + '.pkl'
     SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, _DIR, SAVE_FILE_OP)
     with open(SAVE_FILE_OP_PATH, 'wb') as fh:
         pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
