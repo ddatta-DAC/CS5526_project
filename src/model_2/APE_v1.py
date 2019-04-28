@@ -555,7 +555,11 @@ class model_ape_1:
 		print('-----')
 		losses = []
 		for e in range(self.num_epochs):
+			print ('epoch', e+1)
+			st = time.time()
 			for _b in range(num_batches):
+				if _b % 100 == 0 :
+					print('Batch :', _b )
 				_x_pos = x_pos[_b * bs: (_b + 1) * bs]
 				_x_neg = x_neg[_b * bs: (_b + 1) * bs]
 				_term_2 = term_2[_b * bs: (_b + 1) * bs]
@@ -570,10 +574,18 @@ class model_ape_1:
 						self.term_4: _term_4
 					}
 				)
+				if _b%100 == 0 :
+					print('Loss :',np.mean(loss))
+				
 				losses.append(np.mean(loss))
-				print(np.mean(loss)
-
+			
+			ed = time.time()
+			print('Time elapsed: ', ed-st )	
+				#print(np.mean(loss))
+		
+		print('----')
 		losses = np.array(losses)*-1
+		
 		plt.figure(figsize=[14,10])
 		fig_name = 'model_ape_1' + str(time.time()) + '.png'
 		plt.title('Loss for model training',fontsize=18)
@@ -648,7 +660,7 @@ def get_training_data(
 		P_Aa = tmp.to_dict()
 		P_A[d] = P_Aa
 		inp_dims[d] = domain_dims[d]
-	print('Input dimensions', inp_dims)
+	#print('Input dimensions', inp_dims)
 
 	TRAIN_DATA_FILE = os.path.join(DATA_DIR,_DIR,'ape_v1_train_data.pkl')
 
@@ -685,7 +697,7 @@ def get_training_data(
 						break
 				record[nd] = rnd
 				_x_neg.append(record)
-				print(P_A[nd])
+				#print(P_A[nd])
 				_term_4.append(np.log(P_A[nd][rnd]))
 
 			log_kPne = 0.0
