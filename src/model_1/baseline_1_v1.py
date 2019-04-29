@@ -5,6 +5,7 @@ import sklearn
 from pprint import pprint
 import glob
 import os
+import argparse
 import matplotlib.pyplot as plt
 from sklearn.metrics import auc
 import math
@@ -15,19 +16,21 @@ from sklearn.metrics import mutual_info_score
 import itertools
 import time
 import sys
+
 sys.path.append('./..')
 sys.path.append('./../..')
 from collections import OrderedDict
 from joblib import parallel_backend
+from joblib import Parallel, delayed
 try:
     from .src.Eval import evaluation_v1
 except:
     from src.Eval import evaluation_v1
 
 try:
-	import ad_tree_v1
+    import ad_tree_v1
 except:
-	from . import ad_tree_v1
+    from . import ad_tree_v1
 
 import operator
 
@@ -41,130 +44,125 @@ __email__ = "ddatta@vt.edu"
 __version__ = "7.0"
 # ------------------------- #
 
+_DIR = None
+DATA_DIR = None
 CONFIG_FILE = 'config_1.yaml'
-with open(CONFIG_FILE) as f:
-	config = yaml.safe_load(f)
+ID_LIST = None
+SAVE_DIR = None
+OP_DIR  = None
+config = None
 
-SAVE_DIR = config['SAVE_DIR']
-_DIR = config['_DIR']
-OP_DIR = config['OP_DIR']
-DATA_DIR = config['DATA_DIR']
-if not os.path.exists(SAVE_DIR):
-	os.mkdir(SAVE_DIR)
-SAVE_DIR = os.path.join(SAVE_DIR, _DIR)
 
-if not os.path.exists(SAVE_DIR):
-	os.mkdir(SAVE_DIR)
+def setup(_dir = None):
+    global CONFIG_FILE
+    global _DIR
+    global DATA_DIR
+    global ID_LIST
+    global DATA_X
+    global OP_DIR
+    global _DIR
+    global SAVE_DIR
+    global config
 
-if not os.path.exists(OP_DIR):
-	os.mkdir(OP_DIR)
-OP_DIR = os.path.join(OP_DIR, _DIR)
+    with open(CONFIG_FILE) as f:
+        config = yaml.safe_load(f)
 
-if not os.path.exists(OP_DIR):
-	os.mkdir(OP_DIR)
+    SAVE_DIR = config['SAVE_DIR']
+    if _dir is None:
+        _DIR = config['_DIR']
+    else :
+        _DIR = _dir
+    OP_DIR = config['OP_DIR']
+    DATA_DIR = config['DATA_DIR']
+    if not os.path.exists(SAVE_DIR):
+        os.mkdir(SAVE_DIR)
+    SAVE_DIR = os.path.join(SAVE_DIR, _DIR)
 
-DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
-with open(DATA_FILE, 'rb') as fh:
-	DATA_X = pickle.load(fh)
-ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
-with open(ID_LIST_FILE, 'rb') as fh:
-	ID_LIST = pickle.load(fh)
-print(DATA_X.shape)
+    if not os.path.exists(SAVE_DIR):
+        os.mkdir(SAVE_DIR)
+
+    if not os.path.exists(OP_DIR):
+        os.mkdir(OP_DIR)
+    OP_DIR = os.path.join(OP_DIR, _DIR)
+
+    if not os.path.exists(OP_DIR):
+        os.mkdir(OP_DIR)
+
+    DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
+    with open(DATA_FILE, 'rb') as fh:
+        DATA_X = pickle.load(fh)[:1000]
+    ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
+    with open(ID_LIST_FILE, 'rb') as fh:
+        ID_LIST = pickle.load(fh)
+    print(DATA_X.shape)
 
 
 # ----------------------------------- #
 def calc_MI(x, y):
-	custom = False
-	if custom:
-		x_vals = list(set(x))
-		y_vals = list(set(y))
-		k = len(x_vals) + len(y_vals)
-		N = len(x)
-		p_x = {_x: (x_vals.count(_x) / N) for _x in x_vals}
-		p_y = {_y: (y_vals.count(_y) / N) for _y in y_vals}
-
-		mi = 0
-		xy = np.transpose(np.vstack([x, y]))
-		df = pd.DataFrame(data=xy, columns=['x', 'y'])
-		df = df.groupby(['x', 'y']).size().reset_index(name='counts')
-
-		N = len(df)
-		df['_mi'] = 0
-
-		def set_val(row, N):
-			_p_xy = row['counts'] / N
-			_p_x = p_x[row['x']]
-			_p_y = p_y[row['y']]
-			r = _p_xy * math.log(_p_xy / (_p_x * _p_y), k)
-			return r
-
-		df['_mi'] = df.apply(set_val, axis=1, args=(N,))
-		mi = np.sum(list(df['_mi']))
-
-	# for now use this
-	mi = mutual_info_score(x, y)
-	return mi
+    # for now use this
+    mi = mutual_info_score(x, y)
+    return mi
 
 
 # ----------------------------------- #
 
 # Algorithm thresholds
 MI_THRESHOLD = 0.1
-ALPHA = 0.1
+ALPHA = 0.0015
+
 
 # Get arity of each domain
 def get_domain_arity():
-	f = os.path.join(DATA_DIR, _DIR, 'domain_dims.pkl')
-	with open(f, 'rb') as fh:
-		dd = pickle.load(fh)
-	return list(dd.values())
+    f = os.path.join(DATA_DIR, _DIR, 'domain_dims.pkl')
+    with open(f, 'rb') as fh:
+        dd = pickle.load(fh)
+    return list(dd.values())
 
 
 # --------------- #
 def get_MI_attrSetPair(data_x, s1, s2, obj_adtree):
+    if len(s1) > 1 or len(s2) > 1: return 1
 
-	if	len(s1) > 1 or len(s2) > 1 : return 1
+    if len(s1) == 1 or len(s2) == 1:
+        _x = np.reshape(data_x[:, s1], -1)
+        _y = np.reshape(data_x[:, s2], -1)
+        return calc_MI(x=_x, y=_y)
 
-	if len(s1) == 1 or len(s2) == 1 :
-		_x = np.reshape( data_x[:,s1],-1)
-		_y = np.reshape( data_x[:,s2],-1)
-		return calc_MI(x = _x, y= _y)
+    def _join(row, indices):
+        r = '_'.join([str(row[i]) for i in indices])
+        return r
 
-	def _join(row, indices):
-		r = '_'.join([str(row[i]) for i in indices])
-		return r
+    mask = np.random.choice([False, True], len(data_x), p=[0.8, 0.2])
+    data_x = data_x[mask]
 
-	mask = np.random.choice([False, True], len(data_x), p=[0.8, 0.2])
-	data_x = data_x[mask]
+    _idx = list(s1)
+    _idx.extend(s2)
+    _atr = list(s1)
+    _atr.extend(s2)
+    _dict = {}
+    for a in _atr:
+        _dict[a] = set(data_x[:, [a]])
 
-	_idx = list(s1)
-	_idx.extend(s2)
-	_atr = list(s1)
-	_atr.extend(s2)
-	_dict = {}
-	for a in _atr:
-		_dict[a] = set(data_x[:,[a]])
+    _tmp_df = pd.DataFrame(data=DATA_X)
+    _tmp_df = _tmp_df[_atr]
+
+    _tmp_df['x'] = None
+    _tmp_df['y'] = None
+    _tmp_df['x'] = _tmp_df.apply(
+        _join,
+        axis=1,
+        args=(s1,)
+    )
+    _tmp_df['y'] = _tmp_df.apply(
+        _join,
+        axis=1,
+        args=(s2,)
+    )
+    mi = calc_MI(_tmp_df['x'], _tmp_df['y'])
+    return mi
 
 
-	_tmp_df = pd.DataFrame(data=DATA_X)
-	_tmp_df = _tmp_df[_atr]
-
-	_tmp_df['x'] = None
-	_tmp_df['y'] = None
-	_tmp_df['x'] = _tmp_df.apply(
-		_join,
-		axis=1,
-		args=(s1,)
-	)
-	_tmp_df['y'] = _tmp_df.apply(
-		_join,
-		axis=1,
-		args=(s2,)
-	)
-	mi = calc_MI(_tmp_df['x'], _tmp_df['y'])
-	return mi
-
-	# MI = Sum ( P_(x)(y) log( P_(x)(y)/ P_(x)*P_(y) )
+# MI = Sum ( P_(x)(y) log( P_(x)(y)/ P_(x)*P_(y) )
 
 
 # get sets of attributes for computing r-value
@@ -172,250 +170,227 @@ def get_MI_attrSetPair(data_x, s1, s2, obj_adtree):
 # Returns sets of attributes of size k
 
 def get_attribute_sets(
-		attribute_list,
-		obj_adtree,
-		k=1
+        attribute_list,
+        obj_adtree,
+        k=1
 ):
-	global SAVE_DIR
-	use_mi = True
-	# check if file present in save dir
-	op_file_name = 'set_pairs_' + str(k) + '.pkl'
-	op_file_path = os.path.join(SAVE_DIR, op_file_name)
+    global SAVE_DIR
+    use_mi = True
+    # check if file present in save dir
+    op_file_name = 'set_pairs_' + str(k) + '.pkl'
+    op_file_path = os.path.join(SAVE_DIR, op_file_name)
 
-	if os.path.exists(op_file_path):
-		with open(op_file_path, 'rb') as fh:
-			set_pairs = pickle.load(fh)
-		return set_pairs
+    if os.path.exists(op_file_path):
+        with open(op_file_path, 'rb') as fh:
+            set_pairs = pickle.load(fh)
+        return set_pairs
 
-	# -------------------------------------- #
+    # -------------------------------------- #
 
-	# We can attribute sets till size k
-	# Add in size 1
-	sets = list(itertools.combinations(attribute_list, 1))
+    # We can attribute sets till size k
+    # Add in size 1
+    sets = list(itertools.combinations(attribute_list, 1))
 
-	for _k in range(2, k + 1):
-		_tmp = list(itertools.combinations(attribute_list, _k))
-		sets.extend(_tmp)
+    for _k in range(2, k + 1):
+        _tmp = list(itertools.combinations(attribute_list, _k))
+        sets.extend(_tmp)
 
-	# check if 2 sets have MI > 0.1 and are mutually exclusive
-	set_pairs = []
-	for i in range(len(sets)):
-		for j in range(i + 1, len(sets)):
-			s1 = sets[i]
-			s2 = sets[j]
-			print(s1, s2)
-			# mutual exclusivity test
-			m_e = (len(set(s1).intersection(s2)) == 0)
-			mi_flag = False
-			if m_e is False:
-				continue
-			# -- Ignore MI for now -- #
-			# MI
-			if use_mi is False:
-				mi_flag = True
-			else:
-				mi = get_MI_attrSetPair(DATA_X, s1, s2, obj_adtree)
-				if mi > 0.1:
-					mi_flag = True
+    # check if 2 sets have MI > 0.1 and are mutually exclusive
+    set_pairs = []
+    for i in range(len(sets)):
+        for j in range(i + 1, len(sets)):
+            s1 = sets[i]
+            s2 = sets[j]
+            print(s1, s2)
+            # mutual exclusivity test
+            m_e = (len(set(s1).intersection(s2)) == 0)
+            mi_flag = False
+            if m_e is False:
+                continue
+            # -- Ignore MI for now -- #
+            # MI
+            if use_mi is False:
+                mi_flag = True
+            else:
+                mi = get_MI_attrSetPair(DATA_X, s1, s2, obj_adtree)
+                if mi > 0.1:
+                    mi_flag = True
 
-			if mi_flag is True:
-				set_pairs.append((s1, s2))
+            if mi_flag is True:
+                set_pairs.append((s1, s2))
 
-	_dict = {e[0]: e[1] for e in enumerate(set_pairs, 0)}
-	set_pairs = _dict
-	# Save
+    _dict = {e[0]: e[1] for e in enumerate(set_pairs, 0)}
+    set_pairs = _dict
+    # Save
 
-	with open(op_file_path, 'wb') as fh:
-		pickle.dump(set_pairs, fh, pickle.HIGHEST_PROTOCOL)
+    with open(op_file_path, 'wb') as fh:
+        pickle.dump(set_pairs, fh, pickle.HIGHEST_PROTOCOL)
 
-	return set_pairs
+    return set_pairs
 
 
 def get_count(obj_adtree, domains, vals):
-	_dict = {k: v for k, v in zip(domains, vals)}
-	res = obj_adtree.get_count(_dict)
-	return res
+    _dict = {k: v for k, v in zip(domains, vals)}
+    res = obj_adtree.get_count(_dict)
+    return res
 
 
 def get_r_value(_id, record, obj_adtree, set_pairs, N):
-	global ALPHA
-	print(_id)
-	_r_dict = {}
-	for k, v in set_pairs.items():
-		_vals = []
-		_domains = []
-		for _d in v[0]:
-			_domains.append(_d)
-			_vals.append(record[_d])
+    global ALPHA
+    _r_dict = {}
+    for k, v in set_pairs.items():
+        _vals = []
+        _domains = []
+        for _d in v[0]:
+            _domains.append(_d)
+            _vals.append(record[_d])
 
-		P_at = get_count(obj_adtree, _domains, _vals)
-		P_at = P_at / N
-		# print(P_at)
+        P_at = get_count(obj_adtree, _domains, _vals)
+        P_at = P_at / N
+        # print(P_at)
 
-		_vals_1 = []
-		_domains_1 = []
-		for _d in v[1]:
-			_domains_1.append(_d)
-			_vals_1.append(record[_d])
+        _vals_1 = []
+        _domains_1 = []
+        for _d in v[1]:
+            _domains_1.append(_d)
+            _vals_1.append(record[_d])
 
-		P_bt = get_count(obj_adtree, _domains_1, _vals_1)
-		P_bt = P_bt / N
-		# print(P_bt)
+        P_bt = get_count(obj_adtree, _domains_1, _vals_1)
+        P_bt = P_bt / N
+        # print(P_bt)
 
-		_vals.extend(_vals_1)
-		_domains.extend(_domains_1)
+        _vals.extend(_vals_1)
+        _domains.extend(_domains_1)
 
-		P_ab = get_count(obj_adtree, _domains, _vals) / N
-		r = (P_ab) / (P_at * P_bt)
-		_r_dict[k] = r
-	# heuristic
-	sorted_r = list(sorted(_r_dict.items(), key=operator.itemgetter(1)))
-	# print(sorted_r)
+        P_ab = get_count(obj_adtree, _domains, _vals) / N
+        r = (P_ab) / (P_at * P_bt)
+        _r_dict[k] = r
+    # heuristic
+    sorted_r = list(sorted(_r_dict.items(), key=operator.itemgetter(1)))
+    # print(sorted_r)
 
-	score = 1
-	U = set()
-	threshold = ALPHA
+    score = 1
+    U = set()
+    threshold = ALPHA
 
-	for i in range(len(sorted_r)):
-		_r = sorted_r[i][1]
-		tmp = set_pairs[sorted_r[i][0]]
-		_attr = [item for sublist in tmp for item in sublist]
+    for i in range(len(sorted_r)):
+        _r = sorted_r[i][1]
+        tmp = set_pairs[sorted_r[i][0]]
+        _attr = [item for sublist in tmp for item in sublist]
 
-		if _r > threshold:
-			break
-		if len(U.intersection(set(_attr))) == 0:
-			U = U.union(set(_attr))
-			score *= _r
-	print(score)
-	return _id, score
+        if _r > threshold:
+            break
+        if len(U.intersection(set(_attr))) == 0:
+            U = U.union(set(_attr))
+            score *= _r
+    return _id, score
 
 
-def main():
-	global config
-	start = time.time()
-	K = int(config['K'])
+def main(_dir=None):
 
-	N = DATA_X.shape[0]
-	obj_ADTree = ad_tree_v1.ADT()
-	obj_ADTree.setup(DATA_X)
+    global config
+    setup(_dir)
+    start = time.time()
+    K = int(config['K'])
 
-	attribute_list = list(range(DATA_X.shape[1]))
-	print('Attribute list', attribute_list)
+    N = DATA_X.shape[0]
+    obj_ADTree = ad_tree_v1.ADT()
+    obj_ADTree.setup(DATA_X)
 
-	attribute_set_pairs = get_attribute_sets(
-		attribute_list,
-		obj_ADTree,
-		k=K
-	)
+    attribute_list = list(range(DATA_X.shape[1]))
+    print('Attribute list', attribute_list)
 
-	print(attribute_set_pairs)
-	print(' Number of attribute set pairs ', len(attribute_set_pairs))
+    attribute_set_pairs = get_attribute_sets(
+        attribute_list,
+        obj_ADTree,
+        k=K
+    )
 
-	id_list = ID_LIST['all']
-	result_dict = {}
-	# for _id, record in zip(id_list, DATA_X):
-	#	  r = get_r_value(_id, record, obj_ADTree, attribute_set_pairs, N)
-	#	  result_dict[id] = r
+    print(attribute_set_pairs)
+    print(' Number of attribute set pairs ', len(attribute_set_pairs))
 
-	from joblib import Parallel, delayed
+    id_list = ID_LIST['all']
+    result_dict = {}
 
-	results =  Parallel(
-		n_jobs=10,
-		prefer="threads"
-	)(
-		delayed(
-			get_r_value
-		)(_id, record, obj_ADTree, attribute_set_pairs, N)
-		for _id, record in zip(id_list, DATA_X)
-	)
+    results = Parallel(
+        n_jobs=20,
+    )(
+        delayed(
+            get_r_value
+        )(_id, record, obj_ADTree, attribute_set_pairs, N)
+        for _id, record in zip(id_list, DATA_X)
+    )
 
-	for e in results:
-		result_dict[e[0]] = e[1]
+    for e in results:
+        result_dict[e[0]] = e[1]
 
-	end = time.time()
-	print('-----------------------')
-	print(_DIR)
-	print('k = ', K)
-	print(' Time taken :', end-start)
-	# save file
-	SAVE_FILE_OP = '_'.join(['result_alg_1_', _DIR, str(time.time()).split('.')[0]]) + '.pkl'
-	SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, _DIR, SAVE_FILE_OP)
-	with open(SAVE_FILE_OP_PATH, 'wb') as fh:
-		pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
+    end = time.time()
+    print('-----------------------')
+    print(_DIR)
+    print('k = ', K)
+    print(' Time taken :', end - start)
+    # save file
+    SAVE_FILE_OP = '_'.join(['result_alg_1_', _DIR, str(time.time()).split('.')[0]]) + '.pkl'
+    SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, _DIR, SAVE_FILE_OP)
+    with open(SAVE_FILE_OP_PATH, 'wb') as fh:
+        pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
 
-	anomalies = ID_LIST['anomaly']
-	tmp = sorted(result_dict.items(), key=operator.itemgetter(1))
-	sorted_id_score_dict = OrderedDict()
-	for e in tmp:
-		sorted_id_score_dict[e[0]] = e[1]
+    anomalies = ID_LIST['anomaly']
+    tmp = sorted(result_dict.items(), key=operator.itemgetter(1))
+    sorted_id_score_dict = OrderedDict()
+    for e in tmp:
+        sorted_id_score_dict[e[0]] = e[1]
 
-	recall, precison = evaluation_v1.precision_recall_curve(
-		sorted_id_score_dict,
-		anomaly_id_list=anomalies
-	)
-	print('--------------------------')
+    recall, precison = evaluation_v1.precision_recall_curve(
+        sorted_id_score_dict,
+        anomaly_id_list=anomalies
+    )
+    print('--------------------------')
 
+    _auc = auc(recall, precison)
+    plt.figure(figsize=[14, 8])
+    plt.plot(
+        recall,
+        precison,
+        color='blue', linewidth=1.75)
+    plt.xlabel('Recall', fontsize=15)
+    plt.ylabel('Precision', fontsize=15)
+    plt.title('Recall | AUC ' + str(_auc), fontsize=15)
+    f_path = os.path.join(OP_DIR, 'precison-recall_1.png')
+    plt.savefig(f_path)
+    plt.close()
 
-	_auc = auc(recall, precison)
-	plt.figure(figsize=[14, 8])
-	plt.plot(
-		recall,
-		precison,
-		color='blue', linewidth=1.75)
-	plt.xlabel('Recall', fontsize=15)
-	plt.ylabel('Precision', fontsize=15)
-	plt.title('Recall | AUC ' + str(_auc), fontsize=15)
-	f_path = os.path.join(OP_DIR, 'precison-recall_1.png')
-	plt.savefig(f_path)
-	plt.close()
+    print('----------------------------')
 
-	print('----------------------------')
+    x, y = evaluation_v1.performance_by_score(
+        sorted_id_score_dict,
+        anomalies)
 
-	x, y = evaluation_v1.performance_by_score(
-		sorted_id_score_dict,
-		anomalies)
-
-	plt.figure(figsize=[14, 8])
-	plt.plot(
-		x,
-		y,
-		color='red', linewidth=1.75)
-	# plt.xlabel(' ', fontsize=15)
-	plt.ylabel('Percentage of anomalies detected', fontsize=15)
-	plt.title('Lowest % of scores', fontsize=15)
-	f_path = os.path.join(OP_DIR, 'score_1.png')
-	plt.savefig(f_path)
-	plt.close()
+    plt.figure(figsize=[14, 8])
+    plt.plot(
+        x,
+        y,
+        color='red', linewidth=1.75)
+    # plt.xlabel(' ', fontsize=15)
+    plt.ylabel('Percentage of anomalies detected', fontsize=15)
+    plt.title('Lowest % of scores', fontsize=15)
+    f_path = os.path.join(OP_DIR, 'score_1.png')
+    plt.savefig(f_path)
+    plt.close()
 
 
 # ------------------------------------------ #
 
-main()
 
-# ------------------------------------------ #
-# def _join(row, indices):
-#	  r = '_'.join([str(row[i]) for i in indices])
-#	  return r
-#
-# _idx = list(s1)
-# _idx.extend(s2)
-#
-# _tmp_df = pd.DataFrame(data=DATA_X)
-# _tmp_df['x'] = None
-# _tmp_df['y'] = None
-#
-# _tmp_df['x'] = _tmp_df.apply(
-#	  _join,
-#	  axis=1,
-#	  args=(s1,)
-# )
-# _tmp_df['y'] = _tmp_df.apply(
-#	  _join,
-#	  axis=1,
-#	  args=(s2,)
-# )
-# mi = calc_MI(_tmp_df['x'], _tmp_df['y'])
-# if mi < 0.1:
-#	  mi_flag = False
-# else:
-#	  mi_flag = True
+
+parser = argparse.ArgumentParser()
+
+parser.add_argument("-d", "--digit add r", nargs='?', default="OOPs")
+args = parser.parse_args()
+
+if args.dir == 'OOPs':
+    _dir = None
+else:
+    _dir = args.dir
+
+main(_dir)
