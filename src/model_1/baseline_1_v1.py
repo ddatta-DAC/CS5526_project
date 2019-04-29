@@ -14,6 +14,9 @@ import pickle
 from sklearn.metrics import mutual_info_score
 import itertools
 import time
+import sys
+sys.path.append('./..')
+sys.path.append('./../..')
 from collections import OrderedDict
 from joblib import parallel_backend
 try:
