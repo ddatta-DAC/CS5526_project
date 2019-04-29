@@ -5,6 +5,8 @@ import sklearn
 from pprint import pprint
 import glob
 import os
+import matplotlib.pyplot as plt
+from sklearn.metrics import auc
 import math
 from sklearn import preprocessing
 from scipy.stats import rv_discrete
@@ -12,7 +14,12 @@ import pickle
 from sklearn.metrics import mutual_info_score
 import itertools
 import time
+from collections import OrderedDict
 from joblib import parallel_backend
+try:
+    from .src.Eval import evaluation_v1
+except:
+    from src.Eval import evaluation_v1
 
 try:
 	import ad_tree_v1
@@ -57,10 +64,8 @@ DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
 with open(DATA_FILE, 'rb') as fh:
 	DATA_X = pickle.load(fh)
 ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
-
 with open(ID_LIST_FILE, 'rb') as fh:
 	ID_LIST = pickle.load(fh)
-
 print(DATA_X.shape)
 
 
@@ -92,12 +97,6 @@ def calc_MI(x, y):
 
 		df['_mi'] = df.apply(set_val, axis=1, args=(N,))
 		mi = np.sum(list(df['_mi']))
-		# for i, row in df.iterrows():
-		#	  # calculate p_xy
-		#	  _p_xy = row['counts']/N
-		#	  _p_x = p_x[row['x']]
-		#	  _p_y = p_y[row['y']]
-		#	  mi += _p_xy * math.log(_p_xy / (_p_x * _p_y), k)
 
 	# for now use this
 	mi = mutual_info_score(x, y)
@@ -105,7 +104,6 @@ def calc_MI(x, y):
 
 
 # ----------------------------------- #
-
 
 # Algorithm thresholds
 MI_THRESHOLD = 0.1
@@ -341,6 +339,51 @@ def main():
 	SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, _DIR, SAVE_FILE_OP)
 	with open(SAVE_FILE_OP_PATH, 'wb') as fh:
 		pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
+
+	anomalies = ID_LIST['anomaly']
+	tmp = sorted(result_dict.items(), key=operator.itemgetter(1))
+	sorted_id_score_dict = OrderedDict()
+	for e in tmp:
+		sorted_id_score_dict[e[0]] = e[1]
+
+	recall, precison = evaluation_v1.precision_recall_curve(
+		sorted_id_score_dict,
+		anomaly_id_list=anomalies
+	)
+	print('--------------------------')
+
+
+	_auc = auc(recall, precison)
+	plt.figure(figsize=[14, 8])
+	plt.plot(
+		recall,
+		precison,
+		color='blue', linewidth=1.75)
+	plt.xlabel('Recall', fontsize=15)
+	plt.ylabel('Precision', fontsize=15)
+	plt.title('Recall | AUC ' + str(_auc), fontsize=15)
+	f_path = os.path.join(OP_DIR, 'precison-recall_1.png')
+	plt.savefig(f_path)
+	plt.close()
+
+	print('----------------------------')
+
+	x, y = evaluation_v1.performance_by_score(
+		sorted_id_score_dict,
+		anomalies)
+
+	plt.figure(figsize=[14, 8])
+	plt.plot(
+		x,
+		y,
+		color='red', linewidth=1.75)
+	# plt.xlabel(' ', fontsize=15)
+	plt.ylabel('Percentage of anomalies detected', fontsize=15)
+	plt.title('Lowest % of scores', fontsize=15)
+	f_path = os.path.join(OP_DIR, 'score_1.png')
+	plt.savefig(f_path)
+	plt.close()
+
 
 # ------------------------------------------ #
 
