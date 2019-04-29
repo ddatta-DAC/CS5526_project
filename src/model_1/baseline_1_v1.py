@@ -385,10 +385,10 @@ def main(_dir=None):
 
 parser = argparse.ArgumentParser()
 
-parser.add_argument("-d", "--digit add r", nargs='?', default="OOPs")
+parser.add_argument("-d", "--dir", nargs='?', default="OOPS")
 args = parser.parse_args()
 
-if args.dir == 'OOPs':
+if args.dir == 'OOPS':
     _dir = None
 else:
     _dir = args.dir
