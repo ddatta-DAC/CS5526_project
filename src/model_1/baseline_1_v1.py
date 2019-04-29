@@ -90,7 +90,7 @@ def setup(_dir = None):
 
     DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
     with open(DATA_FILE, 'rb') as fh:
-        DATA_X = pickle.load(fh)[:1000]
+        DATA_X = pickle.load(fh)
     ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
     with open(ID_LIST_FILE, 'rb') as fh:
         ID_LIST = pickle.load(fh)
