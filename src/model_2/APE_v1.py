@@ -98,7 +98,7 @@ def create_args():
 
     tf.app.flags.DEFINE_boolean(
         'use_pretrained',
-        True,
+        False,
         "To train a new model or use pre trained model"
     )
 
