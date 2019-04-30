@@ -22,6 +22,7 @@ sys.path.append('./../..')
 from collections import OrderedDict
 from joblib import parallel_backend
 from joblib import Parallel, delayed
+
 try:
     from .src.Eval import evaluation_v1
 except:
@@ -49,11 +50,37 @@ DATA_DIR = None
 CONFIG_FILE = 'config_1.yaml'
 ID_LIST = None
 SAVE_DIR = None
-OP_DIR  = None
+OP_DIR = None
 config = None
 
 
-def setup(_dir = None):
+def get_data():
+    global DATA_FILE
+    global _DIR
+    global DATA_DIR
+
+    DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
+    with open(DATA_FILE, 'rb') as fh:
+        DATA_X = pickle.load(fh)
+        DATA_X = DATA_X
+    print(DATA_X.shape)
+    _test_files = os.path.join(DATA_DIR, _DIR, 'test_x_*.pkl')
+    print(_test_files)
+    test_files = glob.glob(_test_files)
+    test_x = []
+    test_anom_id = []
+    test_all_id = []
+    for t in test_files:
+        with open(t, 'rb') as fh:
+            data = pickle.load(fh)
+            test_anom_id.append(data[0])
+            test_all_id.append(data[1])
+            test_x.append(data[2])
+
+    return DATA_X, test_anom_id, test_all_id, test_x
+
+
+def setup(_dir=None):
     global CONFIG_FILE
     global _DIR
     global DATA_DIR
@@ -70,7 +97,7 @@ def setup(_dir = None):
     SAVE_DIR = config['SAVE_DIR']
     if _dir is None:
         _DIR = config['_DIR']
-    else :
+    else:
         _DIR = _dir
     OP_DIR = config['OP_DIR']
     DATA_DIR = config['DATA_DIR']
@@ -88,13 +115,13 @@ def setup(_dir = None):
     if not os.path.exists(OP_DIR):
         os.mkdir(OP_DIR)
 
-    DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
-    with open(DATA_FILE, 'rb') as fh:
-        DATA_X = pickle.load(fh)
-    ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
-    with open(ID_LIST_FILE, 'rb') as fh:
-        ID_LIST = pickle.load(fh)
-    print(DATA_X.shape)
+    # DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
+    # with open(DATA_FILE, 'rb') as fh:
+    #     DATA_X = pickle.load(fh)
+    # ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
+    # with open(ID_LIST_FILE, 'rb') as fh:
+    #     ID_LIST = pickle.load(fh)
+    # print(DATA_X.shape)
 
 
 # ----------------------------------- #
@@ -213,7 +240,7 @@ def get_attribute_sets(
                 mi_flag = True
             else:
                 mi = get_MI_attrSetPair(DATA_X, s1, s2, obj_adtree)
-                if mi > 0.1:
+                if mi >= 0.1:
                     mi_flag = True
 
             if mi_flag is True:
@@ -283,14 +310,20 @@ def get_r_value(_id, record, obj_adtree, set_pairs, N):
         if len(U.intersection(set(_attr))) == 0:
             U = U.union(set(_attr))
             score *= _r
+    print( _id, score)
     return _id, score
 
 
 def main(_dir=None):
-
+    global DATA_DIR
+    global _DIR
     global config
+    global OP_DIR
+    global DATA_X
+
     setup(_dir)
-    start = time.time()
+    _DATA_X, test_anom_id, test_all_id, test_x = get_data()
+    DATA_X = _DATA_X
     K = int(config['K'])
 
     N = DATA_X.shape[0]
@@ -309,78 +342,91 @@ def main(_dir=None):
     print(attribute_set_pairs)
     print(' Number of attribute set pairs ', len(attribute_set_pairs))
 
-    id_list = ID_LIST['all']
-    result_dict = {}
+    # Testing phase
 
-    results = Parallel(
-        n_jobs=20,
-    )(
-        delayed(
-            get_r_value
-        )(_id, record, obj_ADTree, attribute_set_pairs, N)
-        for _id, record in zip(id_list, DATA_X)
-    )
+    number_CV = len(test_all_id)
+    for n in range(1):
+        start = time.time()
+        test_data = test_x[n]
+        id_list = test_all_id[n]
+        anom_id_list = test_anom_id[n]
+        result_dict = {}
 
-    for e in results:
-        result_dict[e[0]] = e[1]
+        results = Parallel(
+            n_jobs=4,
+        )(
+            delayed(
+                get_r_value
+            )(_id, record, obj_ADTree, attribute_set_pairs, N)
+            for _id, record in zip(id_list, test_data)
+        )
 
-    end = time.time()
-    print('-----------------------')
-    print(_DIR)
-    print('k = ', K)
-    print(' Time taken :', end - start)
-    # save file
-    SAVE_FILE_OP = '_'.join(['result_alg_1_', _DIR, str(time.time()).split('.')[0]]) + '.pkl'
-    SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, _DIR, SAVE_FILE_OP)
-    with open(SAVE_FILE_OP_PATH, 'wb') as fh:
-        pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
+        for e in results:
+            result_dict[e[0]] = e[1]
 
-    anomalies = ID_LIST['anomaly']
-    tmp = sorted(result_dict.items(), key=operator.itemgetter(1))
-    sorted_id_score_dict = OrderedDict()
-    for e in tmp:
-        sorted_id_score_dict[e[0]] = e[1]
+        end = time.time()
+        print('-----------------------')
+        print(_DIR)
+        print('k = ', K)
+        print(' Time taken :', end - start)
+        # save file
+        SAVE_FILE_OP = '_'.join([
+            'result_alg_1_test_' + str(n),
+            _DIR,
+            str(time.time()).split('.')[0]
+        ]) + '.pkl'
 
-    recall, precison = evaluation_v1.precision_recall_curve(
-        sorted_id_score_dict,
-        anomaly_id_list=anomalies
-    )
-    print('--------------------------')
+        SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, _DIR, SAVE_FILE_OP)
+        with open(SAVE_FILE_OP_PATH, 'wb') as fh:
+            pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
 
-    _auc = auc(recall, precison)
-    plt.figure(figsize=[14, 8])
-    plt.plot(
-        recall,
-        precison,
-        color='blue', linewidth=1.75)
-    plt.xlabel('Recall', fontsize=15)
-    plt.ylabel('Precision', fontsize=15)
-    plt.title('Recall | AUC ' + str(_auc), fontsize=15)
-    f_path = os.path.join(OP_DIR, 'precison-recall_1.png')
-    plt.savefig(f_path)
-    plt.close()
+        tmp = sorted(result_dict.items(), key=operator.itemgetter(1))
+        sorted_id_score_dict = OrderedDict()
+        for e in tmp:
+            sorted_id_score_dict[e[0]] = e[1]
 
-    print('----------------------------')
+        recall, precison = evaluation_v1.precision_recall_curve(
+            sorted_id_score_dict,
+            anomaly_id_list=anom_id_list
+        )
+        print('--------------------------')
 
-    x, y = evaluation_v1.performance_by_score(
-        sorted_id_score_dict,
-        anomalies)
+        _auc = auc(recall, precison)
+        plt.figure(figsize=[14, 8])
+        plt.plot(
+            recall,
+            precison,
+            color='blue', linewidth=1.75)
+        plt.xlabel('Recall', fontsize=15)
+        plt.ylabel('Precision', fontsize=15)
+        plt.title('Recall | AUC ' + str(_auc), fontsize=15)
+        f_name = 'precison-recall_1_test_' + str(n) + '.png'
+        f_path = os.path.join(OP_DIR, f_name)
+        plt.savefig(f_path)
+        plt.close()
 
-    plt.figure(figsize=[14, 8])
-    plt.plot(
-        x,
-        y,
-        color='red', linewidth=1.75)
-    # plt.xlabel(' ', fontsize=15)
-    plt.ylabel('Percentage of anomalies detected', fontsize=15)
-    plt.title('Lowest % of scores', fontsize=15)
-    f_path = os.path.join(OP_DIR, 'score_1.png')
-    plt.savefig(f_path)
-    plt.close()
+        print('----------------------------')
+
+        x, y = evaluation_v1.performance_by_score(
+            sorted_id_score_dict,
+            anom_id_list
+        )
+
+        plt.figure(figsize=[14, 8])
+        plt.plot(
+            x,
+            y,
+            color='red', linewidth=1.75)
+        # plt.xlabel(' ', fontsize=15)
+        plt.ylabel('Percentage of anomalies detected', fontsize=15)
+        plt.title('Lowest % of scores', fontsize=15)
+        f_name = 'score_1_test_' + str(n) + '.png'
+        f_path = os.path.join(OP_DIR, f_name)
+        plt.savefig(f_path)
+        plt.close()
 
 
 # ------------------------------------------ #
-
 
 
 parser = argparse.ArgumentParser()
