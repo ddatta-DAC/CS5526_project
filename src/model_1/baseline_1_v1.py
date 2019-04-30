@@ -308,7 +308,8 @@ def get_r_value(_id, record, obj_adtree, set_pairs, N):
             break
         if len(U.intersection(set(_attr))) == 0:
             U = U.union(set(_attr))
-            score *= _r
+            if _r > 0 :
+                score *= _r
     print( _id, score)
     return _id, score
 

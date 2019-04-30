@@ -14,6 +14,7 @@ def precision_recall_curve(
     recall_vals = []
     precision_vals = []
     num_anomalies = len(anomaly_id_list)
+    print('Number of Anomalies ', num_anomalies)
     count = len(sorted_id_score_dict)
     cur_count = 0
     # Assumption is that the lowest likelihood events are anomalous
