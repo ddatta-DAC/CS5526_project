@@ -59,10 +59,9 @@ def get_data():
     global _DIR
     global DATA_DIR
 
-    DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
+    DATA_FILE = os.path.join(DATA_DIR, _DIR, 'train_x.pkl')
     with open(DATA_FILE, 'rb') as fh:
         DATA_X = pickle.load(fh)
-        DATA_X = DATA_X
     print(DATA_X.shape)
     _test_files = os.path.join(DATA_DIR, _DIR, 'test_x_*.pkl')
     print(_test_files)
@@ -135,7 +134,7 @@ def calc_MI(x, y):
 
 # Algorithm thresholds
 MI_THRESHOLD = 0.1
-ALPHA = 0.0015
+ALPHA = 0.005
 
 
 # Get arity of each domain
@@ -272,8 +271,8 @@ def get_r_value(_id, record, obj_adtree, set_pairs, N):
             _domains.append(_d)
             _vals.append(record[_d])
 
-        P_at = get_count(obj_adtree, _domains, _vals)
-        P_at = P_at / N
+        P_at = get_count(obj_adtree, _domains, _vals)+1
+        P_at = P_at / (N+2)
         # print(P_at)
 
         _vals_1 = []
@@ -282,8 +281,8 @@ def get_r_value(_id, record, obj_adtree, set_pairs, N):
             _domains_1.append(_d)
             _vals_1.append(record[_d])
 
-        P_bt = get_count(obj_adtree, _domains_1, _vals_1)
-        P_bt = P_bt / N
+        P_bt = get_count(obj_adtree, _domains_1, _vals_1)+1
+        P_bt = P_bt / (N+2)
         # print(P_bt)
 
         _vals.extend(_vals_1)
@@ -345,21 +344,25 @@ def main(_dir=None):
     # Testing phase
 
     number_CV = len(test_all_id)
-    for n in range(1):
+    for n in range(number_CV):
         start = time.time()
         test_data = test_x[n]
         id_list = test_all_id[n]
         anom_id_list = test_anom_id[n]
         result_dict = {}
 
-        results = Parallel(
-            n_jobs=4,
-        )(
-            delayed(
-                get_r_value
-            )(_id, record, obj_ADTree, attribute_set_pairs, N)
-            for _id, record in zip(id_list, test_data)
-        )
+        # results = Parallel(
+        #     n_jobs=2,prefer='threads'
+        # )(
+        #     delayed(
+        #         get_r_value
+        #     )(_id, record, obj_ADTree, attribute_set_pairs, N)
+        #     for _id, record in zip(id_list, test_data)
+        # )
+        results = []
+        for _id, record in zip(id_list, test_data) :
+            a = get_r_value(_id, record, obj_ADTree, attribute_set_pairs, N)
+            results.append(a)
 
         for e in results:
             result_dict[e[0]] = e[1]
