@@ -11,16 +11,32 @@ import sys
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
 import time
 import inspect
+from collections import OrderedDict
 import matplotlib.pyplot as plt
 from sklearn.utils import shuffle
 from mpl_toolkits.mplot3d import Axes3D
 import yaml
 
+sys.path.append('./..')
+sys.path.append('./../../.')
+try:
+    from .src.Eval import evaluation_v1
+except:
+    from src.Eval import evaluation_v1
+
+try :
+    from .src.model_3 import lof_1
+except:
+    from src.model_3 import lof_1
+
+
+# ------------------------------------ #
 cur_path = '/'.join(
     os.path.abspath(
         inspect.stack()[0][1]
     ).split('/')[:-1]
 )
+
 sys.path.append(cur_path)
 FLAGS = tf.app.flags.FLAGS
 
@@ -60,7 +76,7 @@ def create_args():
 
     tf.app.flags.DEFINE_integer(
         'num_epochs',
-        10,
+        5,
         'number of epochs for training'
     )
 
@@ -135,19 +151,19 @@ def get_domain_dims():
     return list(res.values())
 
 
-def get_data():
-    global DOMAIN_DIMS
-    DOMAIN_DIMS = get_domain_dims()
-    f_path = os.path.join(DATA_DIR, _DIR + '_' + 'data_x_file.pkl')
-    with open(f_path, 'rb') as fh:
-        res = pickle.load(fh)
-        print(res.shape)
-    f_path = os.path.join(DATA_DIR, _DIR + '_' + 'recordID_file.pkl')
-    with open(f_path, 'rb') as fh:
-        idList = pickle.load(fh)
-        print(idList)
-
-    return res,idList
+# def get_data():
+#     global DOMAIN_DIMS
+#     DOMAIN_DIMS = get_domain_dims()
+#     f_path = os.path.join(DATA_DIR, _DIR + '_' + 'data_x_file.pkl')
+#     with open(f_path, 'rb') as fh:
+#         res = pickle.load(fh)
+#         print(res.shape)
+#     f_path = os.path.join(DATA_DIR, _DIR + '_' + 'recordID_file.pkl')
+#     with open(f_path, 'rb') as fh:
+#         idList = pickle.load(fh)
+#         print(idList)
+#
+#     return res,idList
 
 
 # ----------------------------------------- #
@@ -255,13 +271,12 @@ class model:
 
         layer_1_dims = []
         for i in self.domain_dims:
-            _d = int(math.ceil(math.log(i,2)))
+            _d = int(math.ceil(math.log(i, 2)))
+            if _d <= 1 :
+                _d += 1
             layer_1_dims.append(_d)
         print(layer_1_dims)
 
-        # [80, 3, 16012, 157, 32, 157, 7, 563, 14, 95]
-        # [ 8, 2,    32,   8,  4,   8, 2,   8,  4,  8]
-        # 16
         with tf.name_scope(wb_scope_name):
             prefix = self.model_scope_name + '/' + wb_scope_name + '/'
             self.wb_names = []
@@ -281,7 +296,7 @@ class model:
                     print(layer_inp_dims)
                     print(layer_op_dims)
                 else:
-                    if l == 1 :
+                    if l == 1:
                         layer_inp_dims = layer_1_dims
                     else:
                         layer_inp_dims = [self.emb_dims[l - 1]] * self.num_domains
@@ -693,6 +708,40 @@ def set_up_model():
     return model_obj
 
 
+def get_data():
+    global DATA_FILE
+    global _DIR
+    global DATA_DIR
+
+    DATA_FILE = os.path.join(DATA_DIR, 'train_x.pkl')
+
+    with open(DATA_FILE, 'rb') as fh:
+        DATA_X = pickle.load(fh)
+    print(DATA_X.shape)
+
+    _test_files = os.path.join(
+        DATA_DIR,
+        'test_x_*.pkl'
+    )
+    print(_test_files)
+    test_files = glob.glob(_test_files)
+    test_x = []
+    test_anom_id = []
+    test_all_id = []
+    for t in test_files:
+        with open(t, 'rb') as fh:
+            data = pickle.load(fh)
+            test_anom_id.append(data[0])
+            test_all_id.append(data[1])
+            test_x.append(data[2])
+
+    train_ids = None
+    train_id_file = os.path.join(DATA_DIR, 'train_x_id.pkl')
+    with open(train_id_file, 'rb') as fh:
+        train_ids = pickle.load(fh)
+
+    return DATA_X, test_anom_id, test_all_id, test_x , train_ids
+
 
 def main(argv=None):
     global embedding_dims
@@ -702,31 +751,37 @@ def main(argv=None):
     global config
     global CONFIG_FILE
     global MODEL_NAME
+    global DOMAIN_DIMS
+
+
     with open(CONFIG_FILE) as f:
         config = yaml.safe_load(f)
 
     _DIR = config['_DIR']
-    DATA_DIR = config['DATA_DIR']
+    DATA_DIR = config['DATA_DIR'] + '/' + _DIR
     setup_general_config()
 
     if not os.path.exists(os.path.join(SAVE_DIR, 'checkpoints')):
         os.mkdir(os.path.join(SAVE_DIR, 'checkpoints'))
 
-    x,idList = get_data()
+    # ------------ #
+
+    data_x, test_anom_id, test_all_id, test_x, train_ids = get_data()
+    DOMAIN_DIMS = get_domain_dims()
     model_obj = set_up_model()
 
-    _use_pretrained = FLAGS.use_pretrained & config[MODEL_NAME]['use_pretrained']
+    _use_pretrained = FLAGS.use_pretrained
     if _use_pretrained is False:
-        model_obj.train_model(x)
+        model_obj.train_model(data_x)
 
 
     if _use_pretrained is True:
         pretrained_file = None
-        if config[MODEL_NAME]['saved_model_file'] is None:
+        if config['saved_model_file'] is None:
             if FLAGS.saved_model_file is not None:
                 pretrained_file = FLAGS.saved_model_file
         else:
-            pretrained_file = config[MODEL_NAME]['saved_model_file']
+            pretrained_file = config['saved_model_file']
         print('Pretrained File :', pretrained_file)
 
         print('Saved file ::', FLAGS.saved_model_file)
@@ -737,15 +792,84 @@ def main(argv=None):
         )
         model_obj.set_pretrained_model_file(saved_file_path)
 
-    mean_embeddings = model_obj.get_embedding_mean(x)
-    print(mean_embeddings.shape)
+    for i in range(len(test_x)):
 
-    # save output
-    op_file_name = '_'.join([ 'emb', model_obj.model_signature, model_obj.ts])+'.pkl'
-    op_file_path =  os.path.join(model_obj.op_dir,op_file_name)
+        # combine the test and train data - since it is a density based method
+        _x = np.vstack([data_x, test_x[i]])
 
-    with open(op_file_path,'wb') as fh:
-        pickle.dump([idList, mean_embeddings],fh, pickle.HIGHEST_PROTOCOL)
+
+        mean_embeddings = model_obj.get_embedding_mean(_x)
+        print(data_x.shape[0], test_x[i].shape[0], _x.shape[0] ,mean_embeddings.shape[0])
+
+        _test_all_id = test_all_id[i]
+
+
+        _all_ids = list(train_ids)
+        _all_ids.extend(list(_test_all_id))
+
+
+        anomalies = test_anom_id[i]
+
+
+        # USE LOF here
+        sorted_id_score_dict = lof_1.anomaly_1(
+            id_list=_all_ids,
+            embed_list=mean_embeddings
+        )
+        print(' >>>> ', len(sorted_id_score_dict))
+
+        _scored_dict_test = {}
+
+        for k1,v in sorted_id_score_dict.items():
+            if k1 in _test_all_id or k1 in _scored_dict_test:
+                _scored_dict_test[k1] = v
+
+
+        # _id_score_dict = {
+        #     id: res for id, res in zip(_all_ids, res)
+        # }
+        # tmp = sorted(
+        #     _id_score_dict.items(),
+        #     key=operator.itemgetter(1)
+        # )
+        # sorted_id_score_dict = OrderedDict()
+        # for e in tmp:
+        #     sorted_id_score_dict[e[0]] = e[1]
+
+        recall, precison = evaluation_v1.precision_recall_curve(
+            _scored_dict_test,
+            anomaly_id_list=anomalies
+        )
+
+
+        print('--------------------------')
+
+        from sklearn.metrics import auc
+        _auc = auc(recall, precison)
+        plt.figure(figsize=[14, 8])
+        plt.plot(
+            recall,
+            precison,
+            color='blue', linewidth=1.75)
+        plt.xlabel('Recall', fontsize=15)
+        plt.ylabel('Precision', fontsize=15)
+        plt.title('Recall | AUC ' + str(_auc), fontsize=15)
+        f_name = 'precison-recall_1_test_' + str(i) + '.png'
+        f_path = os.path.join(OP_DIR, f_name)
+
+        plt.savefig(f_path)
+        plt.close()
+
+
+    # mean_embeddings = model_obj.get_embedding_mean(data_x)
+    # print(mean_embeddings.shape)
+    #
+    # # save output
+    # op_file_name = '_'.join([ 'emb', model_obj.model_signature, model_obj.ts])+'.pkl'
+    # op_file_path =  os.path.join(model_obj.op_dir,op_file_name)
+    #
+    # with open(op_file_path,'wb') as fh:
+    #     pickle.dump([idList, mean_embeddings],fh, pickle.HIGHEST_PROTOCOL)
 
 
 def internal_main(argv):

@@ -15,30 +15,52 @@ def precision_recall_curve(
     precision_vals = []
     num_anomalies = len(anomaly_id_list)
     print('Number of Anomalies ', num_anomalies)
-    count = len(sorted_id_score_dict)
-    cur_count = 0
-    # Assumption is that the lowest likelihood events are anomalous
-    for id, score in sorted_id_score_dict.items():
-        flag = False
-        if id in anomaly_id_list:
-            flag = True
-        cur_count += 1
+    total_count = len(sorted_id_score_dict)
+    print(total_count)
+    input_ids = list(sorted_id_score_dict.keys())
 
-        if flag is True:
-            recall+=1
-            correct += 1
-            print('correct / num_anomalies / cur_count',
-                  correct,
-                  num_anomalies,
-                  cur_count
-                  )
-        p = correct/cur_count
-        r = recall/num_anomalies
+    # Set thresholds t
+    # points 0.5 to 100
 
+    # Following charu aggarwal
+    #   Precision  = (S(t) intersection G) /  |S(t)|
+    #   Recall  = (S(t) intersection G) /  |G|
+
+    print('------')
+    for t in np.arange(0.25, 100 + 0.125, 0.125):
+        _k = int((t/100)*total_count)
+        _numerator = len(set(input_ids[:_k]).intersection(anomaly_id_list))
+        print(_numerator, _k ,num_anomalies)
+        p = _numerator/_k
+        r = _numerator/num_anomalies
         precision_vals.append(p)
         recall_vals.append(r)
-        if r == 1.0 :
-            break
+
+        # -------------------------- #
+
+    # cur_count = 0
+    # Assumption is that the lowest likelihood events are anomalous
+    # for id, score in sorted_id_score_dict.items():
+    #     flag = False
+    #     if id in anomaly_id_list:
+    #         flag = True
+    #     cur_count += 1
+    #
+    #     if flag is True:
+    #         recall+=1
+    #         correct += 1
+    #         print('correct / num_anomalies / cur_count',
+    #               correct,
+    #               num_anomalies,
+    #               cur_count
+    #               )
+    #     p = correct/cur_count
+    #     r = recall/num_anomalies
+    #
+    #     precision_vals.append(p)
+    #     recall_vals.append(r)
+    #     if r == 1.0 :
+    #         break
 
     # x Axis : Recall
     # Y Axis : Precision

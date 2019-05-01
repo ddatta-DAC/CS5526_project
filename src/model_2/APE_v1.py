@@ -60,7 +60,7 @@ def create_args():
     )
     tf.app.flags.DEFINE_integer(
         'batchsize',
-        512,
+        1024,
         'size of batch'
     )
     tf.app.flags.DEFINE_integer(
@@ -197,8 +197,8 @@ class model_ape_1:
         self.use_bias = use_bias
         self.epsilon = 0.000001
 
-        self.emb_str = '_'.join([str('_') for _ in self.emb_dims])
-        f_name = MODEL_NAME + '_' + self.emb_str + '_k' + + str(self.neg_samples) +"_frozen.pb"
+        self.emb_str = '_'.join([str(_) for _ in self.emb_dims])
+        f_name = MODEL_NAME + '_' + self.emb_str + '_k_' + str(self.neg_samples) +"_frozen.pb"
         self.frozen_filename = os.path.join(self.chkpt_dir, f_name)
         print(self.frozen_filename)
 
@@ -838,7 +838,7 @@ def main(argv):
         anomalies = test_anom_id[i]
 
         _id_score_dict = {
-            id: res for id, res in zip(anomalies, res)
+            id: res for id, res in zip(all_ids, res)
         }
         tmp = sorted(
             _id_score_dict.items(),
