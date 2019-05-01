@@ -9,6 +9,7 @@ import tensorflow as tf
 import numpy as np
 import pandas as pd
 import os
+import math
 from tensorflow.python.framework.graph_util import convert_variables_to_constants
 import inspect
 import matplotlib.pyplot as plt
@@ -17,6 +18,7 @@ import yaml
 import time
 from collections import OrderedDict
 import seaborn as sns
+import glob
 
 sys.path.append('./..')
 sys.path.append('./../../.')
@@ -31,7 +33,6 @@ cur_path = '/'.join(
     ).split('/')[:-2]
 )
 sys.path.append(cur_path)
-
 FLAGS = tf.app.flags.FLAGS
 
 # ------------------------- #
@@ -47,14 +48,10 @@ __version__ = "6.0"
 
 def create_args():
     tf.app.flags.DEFINE_string(
-        'data_source',
-        '../../data/data_1.csv',
+        'dir',
+        'None',
         "path to data")
 
-    tf.app.flags.DEFINE_string(
-        'data_path',
-        '../../data',
-        "path to data")
 
     tf.app.flags.DEFINE_float(
         'learning_rate',
@@ -63,7 +60,7 @@ def create_args():
     )
     tf.app.flags.DEFINE_integer(
         'batchsize',
-        128,
+        512,
         'size of batch'
     )
     tf.app.flags.DEFINE_integer(
@@ -74,7 +71,7 @@ def create_args():
 
     tf.app.flags.DEFINE_integer(
         'num_epochs',
-        3,
+        4,
         'number of epochs for training'
     )
 
@@ -98,7 +95,7 @@ def create_args():
 
     tf.app.flags.DEFINE_boolean(
         'use_pretrained',
-        False,
+        True,
         "To train a new model or use pre trained model"
     )
 
@@ -124,9 +121,13 @@ def create_args():
 
 
 def get_domain_arity():
+    global DATA_DIR
+    global _DIR
     f = os.path.join(DATA_DIR, _DIR, 'domain_dims.pkl')
+
     with open(f, 'rb') as fh:
         dd = pickle.load(fh)
+
     return list(dd.values())
 
 
@@ -197,7 +198,7 @@ class model_ape_1:
         self.epsilon = 0.000001
 
         self.emb_str = '_'.join([str('_') for _ in self.emb_dims])
-        f_name = MODEL_NAME + '_' + self.emb_str + "_frozen.pb"
+        f_name = MODEL_NAME + '_' + self.emb_str + '_k' + + str(self.neg_samples) +"_frozen.pb"
         self.frozen_filename = os.path.join(self.chkpt_dir, f_name)
         print(self.frozen_filename)
 
@@ -632,54 +633,71 @@ class model_ape_1:
 # x_neg_inp = [?,neg_samples, num_entities]
 
 def get_training_data(
-
+        data_x,
         neg_samples
 ):
     global DATA_DIR
     global _DIR
     global config
-    DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
-    with open(DATA_FILE, 'rb') as fh:
-        DATA_X = pickle.load(fh)
 
-    ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
-    with open(ID_LIST_FILE, 'rb') as fh:
-        ID_LIST = pickle.load(fh)
+    # DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
+    # with open(DATA_FILE, 'rb') as fh:
+    #     DATA_X = pickle.load(fh)
 
-    vals = DATA_X
+
+    # ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
+    # with open(ID_LIST_FILE, 'rb') as fh:
+    #     ID_LIST = pickle.load(fh)
+    data_x = data_x
+    vals = data_x
 
     # Calculate probability of each entity for each domain
-    num_domains = DATA_X.shape[1]
+    num_domains = data_x.shape[1]
 
     P_A = [None] * num_domains
     inp_dims = [None] * num_domains
 
     domain_dims = get_domain_arity()
     for d in range(0, num_domains):
-        _col = np.reshape(DATA_X[:, [d]], -1)
+        _col = np.reshape(data_x[:, [d]], -1)
         _series = pd.Series(_col)
         tmp = _series.value_counts(normalize=True)
         P_Aa = tmp.to_dict()
+        for _z in range(domain_dims[d]):
+            if _z not in P_Aa.keys():
+                P_Aa[_z] = math.pow(10,-8)
         P_A[d] = P_Aa
         inp_dims[d] = domain_dims[d]
     # print('Input dimensions', inp_dims)
 
-    TRAIN_DATA_FILE = os.path.join(DATA_DIR, _DIR, 'ape_v1_train_data.pkl')
-
+    TRAIN_DATA_FILE_NAME = 'ape_v1_train_data_'+ str(neg_samples) +'.pkl'
+    TRAIN_DATA_FILE = os.path.join(DATA_DIR, _DIR, TRAIN_DATA_FILE_NAME)
+    print(TRAIN_DATA_FILE)
     if os.path.exists(TRAIN_DATA_FILE):
         with open(TRAIN_DATA_FILE, 'rb') as fh:
             data = pickle.load(fh)
         if config['REFRESH_DATA'] is False:
-            return data, inp_dims, ID_LIST
+            return data, inp_dims
 
+    print(' Creating training data ')
     x_pos = []
     x_neg = []
     term_2 = []
     term_4 = []
+    count = 0
+
+    import random
+    l = int(0.95*vals.shape[0])
+    vals = vals[np.random.choice(vals.shape[0], l, replace=False), :]
+
+    # vals = random.sample(vals, l)
 
     for row in vals:
+        count +=1
+        print('>', count)
         val = row
         for nd in range(num_domains):
+
             record = list(val)
             x_pos.append(record)
             cur = record[nd]
@@ -691,16 +709,16 @@ def get_training_data(
                 # replace
                 # do a uniform sampling
                 rnd = None
+
                 while True:
                     rnd = np.random.randint(
                         low=0,
                         high=inp_dims[nd]
                     )
-                    if rnd != cur:
+                    if inp_dims[nd] == 1 or rnd != cur:
                         break
                 record[nd] = rnd
                 _x_neg.append(record)
-                # print(P_A[nd])
                 _term_4.append(np.log(P_A[nd][rnd]))
 
             log_kPne = 0.0
@@ -728,7 +746,41 @@ def get_training_data(
     with open(TRAIN_DATA_FILE, 'wb') as fh:
         pickle.dump(data, fh, pickle.HIGHEST_PROTOCOL)
 
-    return data, inp_dims, ID_LIST
+    return data, inp_dims
+
+# ----------------------------------------- #
+# This gets all the data
+# ----------------------------------------- #
+def get_data():
+    global DATA_FILE
+    global _DIR
+    global DATA_DIR
+
+    DATA_FILE = os.path.join(DATA_DIR, _DIR, 'train_x.pkl')
+
+    with open(DATA_FILE, 'rb') as fh:
+        DATA_X = pickle.load(fh)
+    print(DATA_X.shape)
+
+    _test_files = os.path.join(
+        DATA_DIR,
+        _DIR,
+        'test_x_*.pkl'
+    )
+    print(_test_files)
+    test_files = glob.glob(_test_files)
+    test_x = []
+    test_anom_id = []
+    test_all_id = []
+    for t in test_files:
+        with open(t, 'rb') as fh:
+            data = pickle.load(fh)
+            test_anom_id.append(data[0])
+            test_all_id.append(data[1])
+            test_x.append(data[2])
+
+    return DATA_X, test_anom_id, test_all_id, test_x
+
 
 
 # --------------------------- #
@@ -736,6 +788,7 @@ def main(argv):
     global _DIR
     global OP_DIR
     global SAVE_DIR
+
     if not os.path.exists(SAVE_DIR):
         os.mkdir(SAVE_DIR)
         if os.path.exists(os.path.join(SAVE_DIR, _DIR)):
@@ -744,9 +797,15 @@ def main(argv):
     checkpoint_dir = os.path.join(SAVE_DIR)
 
     print(os.getcwd())
-    data, inp_dims, ID_LIST = get_training_data(
+
+
+
+    data_x, test_anom_id, test_all_id, test_x =  get_data()
+    data, inp_dims= get_training_data(
+        data_x,
         FLAGS.neg_samples
     )
+
 
     num_domains = len(inp_dims)
     model_obj = model_ape_1()
@@ -769,55 +828,69 @@ def main(argv):
         model_obj.build_model()
         model_obj.train_model(data)
 
-    res = model_obj.inference(data[0])
-    all_ids = ID_LIST['all']
-    anomalies = ID_LIST['anomaly']
-    _id_score_dict = {
-        id: res for id, res in zip(all_ids, res)
-    }
-    tmp = sorted(_id_score_dict.items(), key=operator.itemgetter(1))
-    sorted_id_score_dict = OrderedDict()
-    for e in tmp:
-        sorted_id_score_dict[e[0]] = e[1]
 
-    recall, precison = evaluation_v1.precision_recall_curve(
-        sorted_id_score_dict,
-        anomaly_id_list=anomalies
-    )
 
-    print('--------------------------')
+    for i in range(len(test_x)):
 
-    from sklearn.metrics import auc
-    _auc = auc(recall, precison)
-    plt.figure(figsize=[14, 8])
-    plt.plot(
-        recall,
-        precison,
-        color='blue', linewidth=1.75)
-    plt.xlabel('Recall', fontsize=15)
-    plt.ylabel('Precision', fontsize=15)
-    plt.title('Recall | AUC ' + str(_auc), fontsize=15)
-    f_path = os.path.join(OP_DIR, 'precison-recall_1.png')
-    plt.savefig(f_path)
-    plt.close()
+        _x = test_x[i]
+        res = model_obj.inference(_x)
+        all_ids = test_all_id[i]
+        anomalies = test_anom_id[i]
 
-    print('----------------------------')
+        _id_score_dict = {
+            id: res for id, res in zip(anomalies, res)
+        }
+        tmp = sorted(
+            _id_score_dict.items(),
+            key=operator.itemgetter(1)
+        )
+        sorted_id_score_dict = OrderedDict()
+        for e in tmp:
+            sorted_id_score_dict[e[0]] = e[1]
 
-    x, y = evaluation_v1.performance_by_score(
-        sorted_id_score_dict,
-        anomalies)
+        recall, precison = evaluation_v1.precision_recall_curve(
+            sorted_id_score_dict,
+            anomaly_id_list=anomalies
+        )
 
-    plt.figure(figsize=[14, 8])
-    plt.plot(
-        x,
-        y,
-        color='red', linewidth=1.75)
-    # plt.xlabel(' ', fontsize=15)
-    plt.ylabel('Percentage of anomalies detected', fontsize=15)
-    plt.title('Lowest % of scores', fontsize=15)
-    f_path = os.path.join(OP_DIR, 'score_1.png')
-    plt.savefig(f_path)
-    plt.close()
+        print('--------------------------')
+
+        from sklearn.metrics import auc
+        _auc = auc(recall, precison)
+        plt.figure(figsize=[14, 8])
+        plt.plot(
+            recall,
+            precison,
+            color='blue', linewidth=1.75)
+        plt.xlabel('Recall', fontsize=15)
+        plt.ylabel('Precision', fontsize=15)
+        plt.title('Recall | AUC ' + str(_auc), fontsize=15)
+        f_name = 'precison-recall_1_test_' + str(i) + '.png'
+        f_path = os.path.join(OP_DIR, f_name)
+
+        plt.savefig(f_path)
+        plt.close()
+
+        print('----------------------------')
+
+        x, y = evaluation_v1.performance_by_score(
+            sorted_id_score_dict,
+            anomalies)
+
+        plt.figure(figsize=[14, 8])
+        plt.plot(
+            x,
+            y,
+            color='red', linewidth=1.75)
+        # plt.xlabel(' ', fontsize=15)
+        plt.ylabel('Percentage of anomalies detected', fontsize=15)
+        plt.title('Lowest % of scores', fontsize=15)
+
+        f_name = 'score_1_test_' + str(i) + '.png'
+        f_path = os.path.join(OP_DIR, f_name)
+
+        plt.savefig(f_path)
+        plt.close()
 
 
 # print(x_id.shape, x_data.shape)
