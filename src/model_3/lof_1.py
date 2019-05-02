@@ -39,7 +39,7 @@ sys.path.append(cur_path)
 # DATA_DIR = model_3_v1.DATA_DIR
 print(cur_path)
 # print(OP_DIR)
-KNN_K = 20
+KNN_K = 22
 DISPLAY_ENSEMBLE_FIG = True
 
 
@@ -151,14 +151,14 @@ def anomaly_1( id_list, embed_list ):
     # LOF scores are normalized , so simply add them up
     all_keys = list(x_id)
     print(len(all_keys))
-
+    num_subsp = len(all_candidates)
     score_dict = {}
 
     for k in all_keys:
         s = 0
         for _r in all_candidates:
             s += _r[k]
-        score_dict[k] = s
+        score_dict[k] = s/num_subsp
 
     if DISPLAY_ENSEMBLE_FIG:
         sorted_x = sorted(score_dict.items(), key=operator.itemgetter(1),reverse=True)
