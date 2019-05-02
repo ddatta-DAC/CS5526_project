@@ -369,8 +369,12 @@ def main(_dir=None):
         with open(SAVE_FILE_OP_PATH, 'wb') as fh:
             pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
 
-        tmp = sorted(result_dict.items(), key=operator.itemgetter(1))
+        tmp = sorted(
+            result_dict.items(),
+            key=operator.itemgetter(1)
+        )
         sorted_id_score_dict = OrderedDict()
+
         for e in tmp:
             sorted_id_score_dict[e[0]] = e[1]
 
