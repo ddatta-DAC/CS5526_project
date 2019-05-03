@@ -55,7 +55,7 @@ def create_args():
 
     tf.app.flags.DEFINE_string(
         'directory',
-        'china_import',
+        'data_3',
         "path to data in the filtered/processed data")
 
     tf.app.flags.DEFINE_float(
@@ -65,18 +65,18 @@ def create_args():
     )
     tf.app.flags.DEFINE_integer(
         'batchsize',
-        128,
+        256,
         'size of batch'
     )
     tf.app.flags.DEFINE_string(
         'op_dims',
-        '8,8',
+        '8,5',
         'size of embedding'
     )
 
     tf.app.flags.DEFINE_integer(
         'num_epochs',
-        5,
+        50,
         'number of epochs for training'
     )
 
@@ -112,7 +112,7 @@ def create_args():
 
     tf.app.flags.DEFINE_boolean(
         'show_loss_figure',
-        True,
+        False,
         'set display of figure (based on matplotlib backend support)'
     )
 
@@ -604,6 +604,7 @@ class model:
                 # from pprint import pprint
                 # pprint(_x_pos)
                 # print(_x_pos.shape)
+                # print(get_domain_dims())
                 # exit(1)
                 if _b == num_batches - 1:
                     _x_pos = x_pos[_b * bs:]
@@ -637,7 +638,7 @@ class model:
             if self.show_loss_figure:
                 plt.show()
             if self.save_loss_figure:
-                fig_name = self.model_signature + '_' + self.ts + '.png'
+                fig_name = 'loss_'+ self.model_signature + '_epochs_' +str(self.num_epochs) +'_' + self.ts + '.png'
                 file_path = os.path.join(self.op_dir, fig_name)
                 plt.savefig(file_path)
             plt.close()

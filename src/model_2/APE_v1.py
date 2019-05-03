@@ -95,7 +95,7 @@ def create_args():
 
     tf.app.flags.DEFINE_boolean(
         'use_pretrained',
-        True,
+        False,
         "To train a new model or use pre trained model"
     )
 
@@ -640,15 +640,6 @@ def get_training_data(
     global _DIR
     global config
 
-    # DATA_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_x.pkl')
-    # with open(DATA_FILE, 'rb') as fh:
-    #     DATA_X = pickle.load(fh)
-
-
-    # ID_LIST_FILE = os.path.join(DATA_DIR, _DIR, _DIR + '_idList.pkl')
-    # with open(ID_LIST_FILE, 'rb') as fh:
-    #     ID_LIST = pickle.load(fh)
-    data_x = data_x
     vals = data_x
 
     # Calculate probability of each entity for each domain
@@ -686,11 +677,6 @@ def get_training_data(
     term_4 = []
     count = 0
 
-    import random
-    l = int(0.95*vals.shape[0])
-    vals = vals[np.random.choice(vals.shape[0], l, replace=False), :]
-
-    # vals = random.sample(vals, l)
 
     for row in vals:
         count +=1
@@ -827,7 +813,6 @@ def main(argv):
     if FLAGS.use_pretrained is False:
         model_obj.build_model()
         model_obj.train_model(data)
-
 
 
     for i in range(len(test_x)):

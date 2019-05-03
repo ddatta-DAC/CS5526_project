@@ -3,4 +3,4 @@
 'OP_DIR' : 'output'
 'SAVE_DIR' : 'save_dir'
 'MODEL_NAME' : 'my_model_v_1_0'
-'saved_model_file' : 'frozen_model_3_v18_8_1556761699.pb'
+'saved_model_file' : 'frozen_model_3_v18_5_1556920428.pb'

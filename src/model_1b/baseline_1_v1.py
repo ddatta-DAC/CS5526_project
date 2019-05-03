@@ -305,11 +305,22 @@ def main(_dir=None):
     global config
     global OP_DIR
     global DATA_X
+    global DISCARD_0
+
+    _dir = _args['_dir']
+    k_val = _args['k_val']
+
+    DISCARD_0 =  _args['discard_0']
 
     setup(_dir)
     _DATA_X, test_anom_id, test_all_id, test_x = get_data()
     DATA_X = _DATA_X
     K = int(config['K'])
+    # override
+    if k_val is not None:
+        K = k_val
+    print(k_val)
+
 
     N = DATA_X.shape[0]
     obj_ADTree = ad_tree_v1.ADT()
@@ -337,14 +348,7 @@ def main(_dir=None):
         anom_id_list = test_anom_id[n]
         result_dict = {}
 
-        # results = Parallel(
-        #     n_jobs=2,prefer='threads'
-        # )(
-        #     delayed(
-        #         get_r_value
-        #     )(_id, record, obj_ADTree, attribute_set_pairs, N)
-        #     for _id, record in zip(id_list, test_data)
-        # )
+
         results = []
         for _id, record in zip(id_list, test_data) :
             a = get_r_value(_id, record, obj_ADTree, attribute_set_pairs, N)
@@ -365,24 +369,46 @@ def main(_dir=None):
             str(time.time()).split('.')[0]
         ]) + '.pkl'
 
-        SAVE_FILE_OP_PATH = os.path.join(OP_DIR, SAVE_FILE_OP)
+        SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, SAVE_FILE_OP)
         with open(SAVE_FILE_OP_PATH, 'wb') as fh:
             pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
 
-        tmp = sorted(
-            result_dict.items(),
-            key=operator.itemgetter(1)
-        )
+        tmp = sorted(result_dict.items(), key=operator.itemgetter(1))
         sorted_id_score_dict = OrderedDict()
-
         for e in tmp:
             sorted_id_score_dict[e[0]] = e[1]
+
+
+        print('--------------------------')
+
+        # Plot the distribution of r values
+        _y = list(sorted(list(result_dict.values())))
+        _x = list(range(len(_y)))
+
+        plt.figure(figsize=[14, 8])
+        plt.plot(
+            _x,
+            _y,
+            color='red',
+            linewidth=1.5
+        )
+        plt.xlabel('Samples (sorted)', fontsize=15)
+        plt.ylabel('Decision value r', fontsize=15)
+
+        f_name = 'r_vals' + '_K_'+ str(K) + '_test_' + str(n) + '_discard_0_'+ str(DISCARD_0) + '.png'
+        f_path = os.path.join(OP_DIR, f_name)
+
+        plt.savefig(f_path)
+        plt.close()
+        # -------------------------------#
+
+        print('--------------------------')
+
 
         recall, precison = evaluation_v1.precision_recall_curve(
             sorted_id_score_dict,
             anomaly_id_list=anom_id_list
         )
-        print('--------------------------')
 
         _auc = auc(recall, precison)
         plt.figure(figsize=[14, 8])
@@ -393,12 +419,13 @@ def main(_dir=None):
         plt.xlabel('Recall', fontsize=15)
         plt.ylabel('Precision', fontsize=15)
         plt.title('Recall | AUC ' + str(_auc), fontsize=15)
-        f_name = 'precison-recall_1_test_' + str(n) + '.png'
+        f_name = 'precison-recall_1' + '_K_'+ str(K) + '_test_' + str(n) + '_discard_0_'+ str(DISCARD_0) + '.png'
         f_path = os.path.join(OP_DIR, f_name)
         plt.savefig(f_path)
         plt.close()
 
         print('----------------------------')
+
 
         x, y = evaluation_v1.performance_by_score(
             sorted_id_score_dict,
@@ -424,6 +451,8 @@ def main(_dir=None):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--dir", nargs='?', default="None")
+parser.add_argument("-k", "--k_val", nargs='?', default=1)
+parser.add_argument("-r", "--discard_0", nargs='?', default=False)
 args = parser.parse_args()
 
 if args.dir == 'None':
@@ -431,4 +460,17 @@ if args.dir == 'None':
 else:
     _dir = args.dir
 
-main(_dir)
+if args.k_val == 1:
+    k_val = None
+else:
+    k_val = args.k_val
+
+_discard_0 = args.discard_0
+
+_args = {
+    '_dir' : _dir ,
+    'k_val' : int(k_val),
+    'discard_0' : bool(_discard_0)
+}
+
+main(_args)
