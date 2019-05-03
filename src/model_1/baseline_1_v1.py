@@ -379,7 +379,7 @@ def main(_dir=None):
             str(time.time()).split('.')[0]
         ]) + '.pkl'
 
-        SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, _DIR, SAVE_FILE_OP)
+        SAVE_FILE_OP_PATH = os.path.join(DATA_DIR, SAVE_FILE_OP)
         with open(SAVE_FILE_OP_PATH, 'wb') as fh:
             pickle.dump(result_dict, fh, pickle.HIGHEST_PROTOCOL)
 
