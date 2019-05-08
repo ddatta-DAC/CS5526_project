@@ -52,7 +52,6 @@ def create_args():
         'None',
         "path to data")
 
-
     tf.app.flags.DEFINE_float(
         'learning_rate',
         0.001,
@@ -71,7 +70,7 @@ def create_args():
 
     tf.app.flags.DEFINE_integer(
         'num_epochs',
-        4,
+        2,
         'number of epochs for training'
     )
 
@@ -174,7 +173,7 @@ if not os.path.exists(OP_DIR):
     os.mkdir(OP_DIR)
 MODEL_NAME = 'model_ape'
 
-embedding_dims = [10]
+embedding_dims = [16]
 domain_dims = get_domain_arity()
 cur_path = get_cur_path()
 
@@ -491,7 +490,7 @@ class model_ape_1:
                         tf.multiply(x_pos_WXb[l][i],
                                     x_pos_WXb[l][j]),
                         axis=1,
-                        keepdims=True) * self.W_ij[i][j]
+                        keepdims=True) * tf.sqrt(tf.square(self.W_ij[i][j]))
                     _sum += z
                     print(z)
             P_e = tf.exp(_sum + self.c)  # 1st term in the loss equation
@@ -518,7 +517,7 @@ class model_ape_1:
                     z = tf.reduce_sum(
                         _z1,
                         axis=-1,
-                        keepdims=True) * self.W_ij[i][j]
+                        keepdims=True) *  tf.sqrt(tf.square(self.W_ij[i][j]))
                     neg_pair_dp.append(z)
             print(neg_pair_dp)
 
@@ -805,7 +804,7 @@ def main(argv):
     )
 
     model_obj.set_hyper_parameters(
-        emb_dims=[10],
+        emb_dims=[8],
         use_bias=[True, False]
     )
 
@@ -814,8 +813,10 @@ def main(argv):
         model_obj.build_model()
         model_obj.train_model(data)
 
-
-    for i in range(len(test_x)):
+    test_result_r = []
+    test_result_p = []
+    res = None
+    for i in range(len(test_x)-1):
 
         _x = test_x[i]
         res = model_obj.inference(_x)
@@ -847,13 +848,16 @@ def main(argv):
             recall,
             precison,
             color='blue', linewidth=1.75)
+
         plt.xlabel('Recall', fontsize=15)
         plt.ylabel('Precision', fontsize=15)
         plt.title('Recall | AUC ' + str(_auc), fontsize=15)
         f_name = 'precison-recall_1_test_' + str(i) + '.png'
         f_path = os.path.join(OP_DIR, f_name)
 
-        plt.savefig(f_path)
+        # plt.savefig(f_path)
+        test_result_r.append(recall)
+        test_result_p.append(precison)
         plt.close()
 
         print('----------------------------')
@@ -877,30 +881,41 @@ def main(argv):
         plt.savefig(f_path)
         plt.close()
 
+    plt.figure(figsize=[14, 8])
+    j = 1
 
-# print(x_id.shape, x_data.shape)
-#
-# res = model_obj.inference(x_data)
-# print(res)
-# # Reconstruct
-# # reconstruct_df(x_id, x_data, res)
-#
-# # get in form of { 'id' : 'embedding' }
-# id_emb_dict = {}
-# id_p_dict = {}
-#
-# for i, e, p in zip(x_id, x_data, res):
-#	  id_emb_dict[i[0]] = list(e)
-#	  id_p_dict[i[0]] = p
-#
-# save file
-# id_emb_dict_file = 'id_emb_dict_' + str(time.time()) + '.pkl'
-# file = open(id_emb_dict_file, 'wb')
-# pickle.dump(id_emb_dict, file, protocol=4)
-# id_p_dict_file = 'id_p_dict_' + str(time.time()) + '.pkl'
-# file = open(id_p_dict_file, 'wb')
-# pickle.dump(id_p_dict, file, protocol=4)
+    for _x, _y in zip(test_result_r, test_result_p):
+        plt.plot(
+            _x,
+            _y,
+            linewidth=1.75,
+            label='Test set ' + str(j)
+        )
+        j += 1
+        _auc = auc(_x, _y)
+        print(_auc)
 
+
+    plt.xlabel('Recall', fontsize=15)
+    plt.ylabel('Precision', fontsize=15)
+    plt.title('Precision Recall Curve', fontsize=17)
+    plt.legend(loc='best')
+    plt.show()
+    plt.close()
+
+    plt.figure(figsize=[14, 8])
+    plt.title('Distribution of scores in Model 2', fontsize=17)
+    plt.ylabel('Scores', fontsize=15)
+    plt.xlabel('Samples', fontsize=15)
+    _y = list(sorted(res))
+    _x = list(range(len(_y)))
+    plt.plot(
+        _x,
+        _y,
+        linewidth=1.75
+    )
+    plt.show()
+    plt.close()
 
 # ---------------------------- #
 

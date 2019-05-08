@@ -39,8 +39,8 @@ sys.path.append(cur_path)
 # DATA_DIR = model_3_v1.DATA_DIR
 print(cur_path)
 # print(OP_DIR)
-KNN_K = 25
-DISPLAY_ENSEMBLE_FIG = True
+KNN_K = 20
+DISPLAY_ENSEMBLE_FIG = False
 
 
 # ------------------------------------ #

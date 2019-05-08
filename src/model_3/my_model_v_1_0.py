@@ -151,20 +151,6 @@ def get_domain_dims():
     return list(res.values())
 
 
-# def get_data():
-#     global DOMAIN_DIMS
-#     DOMAIN_DIMS = get_domain_dims()
-#     f_path = os.path.join(DATA_DIR, _DIR + '_' + 'data_x_file.pkl')
-#     with open(f_path, 'rb') as fh:
-#         res = pickle.load(fh)
-#         print(res.shape)
-#     f_path = os.path.join(DATA_DIR, _DIR + '_' + 'recordID_file.pkl')
-#     with open(f_path, 'rb') as fh:
-#         idList = pickle.load(fh)
-#         print(idList)
-#
-#     return res,idList
-
 
 # ----------------------------------------- #
 # ---------		  Model Config	  --------- #
@@ -793,7 +779,11 @@ def main(argv=None):
         )
         model_obj.set_pretrained_model_file(saved_file_path)
 
-    for i in range(len(test_x)):
+
+    test_result_r = []
+    test_result_p = []
+
+    for i in range(len(test_x)-1):
 
         # combine the test and train data - since it is a density based method
         _x = np.vstack([data_x, test_x[i]])
@@ -825,22 +815,12 @@ def main(argv=None):
             if k1 in _test_all_id or k1 in _scored_dict_test:
                 _scored_dict_test[k1] = v
 
-
-        # _id_score_dict = {
-        #     id: res for id, res in zip(_all_ids, res)
-        # }
-        # tmp = sorted(
-        #     _id_score_dict.items(),
-        #     key=operator.itemgetter(1)
-        # )
-        # sorted_id_score_dict = OrderedDict()
-        # for e in tmp:
-        #     sorted_id_score_dict[e[0]] = e[1]
-
         recall, precison = evaluation_v1.precision_recall_curve(
             _scored_dict_test,
             anomaly_id_list=anomalies
         )
+        test_result_r.append(recall)
+        test_result_p.append(precison)
 
 
         print('--------------------------')
@@ -858,19 +838,32 @@ def main(argv=None):
         f_name = 'precison-recall_1_test_' + str(i) + '.png'
         f_path = os.path.join(OP_DIR, f_name)
 
-        plt.savefig(f_path)
+        # plt.savefig(f_path)
         plt.close()
 
 
-    # mean_embeddings = model_obj.get_embedding_mean(data_x)
-    # print(mean_embeddings.shape)
-    #
-    # # save output
-    # op_file_name = '_'.join([ 'emb', model_obj.model_signature, model_obj.ts])+'.pkl'
-    # op_file_path =  os.path.join(model_obj.op_dir,op_file_name)
-    #
-    # with open(op_file_path,'wb') as fh:
-    #     pickle.dump([idList, mean_embeddings],fh, pickle.HIGHEST_PROTOCOL)
+    plt.figure(figsize=[14, 8])
+    j = 1
+    for _x,_y in zip(test_result_r,test_result_p):
+        plt.plot(
+            _x,
+            _y,
+            linewidth=1.75,
+            label='Test set ' + str(j)
+        )
+        j += 1
+        _auc = auc(_x, _y)
+        print(_auc)
+
+    plt.xlabel('Recall', fontsize=15)
+    plt.ylabel('Precision', fontsize=15)
+    plt.title('Precision Recall Curve', fontsize=17)
+    plt.legend(loc='best')
+    # f_name = 'precison-recall_1_test_' + str(i) + '.png'
+    # f_path = os.path.join(OP_DIR, f_name)
+
+    plt.show()
+    plt.close()
 
 
 def internal_main(argv):
